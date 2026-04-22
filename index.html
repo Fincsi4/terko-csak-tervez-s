@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TérkőMester – Látványtervező &amp; Ajánlatkérés</title>
+<link rel="canonical" href="https://joszaki.hu/fiokom/ajanlatkereseim/terkotervezo">
+<meta property="og:url" content="https://joszaki.hu/fiokom/ajanlatkereseim/terkotervezo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{
+  --primary:#337AB7;--primary-dark:#23527C;--primary-light:#5B9BD5;--primary-bg:#E8F1FA;
+  --green:#22A651;--green-dark:#1a7d3e;--green-bg:#E6F7EE;
+  --orange:#F97316;--text-1:#1E2D3D;--text-2:#4B5563;--text-3:#9CA3AF;
+  --bg-1:#fff;--bg-2:#F9FAFB;--bg-3:#F3F4F6;--border:#E5E7EB;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 12px rgba(0,0,0,.10);--shadow-lg:0 10px 30px rgba(0,0,0,.12);
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--font:'Nunito',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--text-1);background:var(--bg-2);line-height:1.6}
+button{cursor:pointer;font-family:var(--font);border:none;background:none}
+input,select,textarea{font-family:var(--font);font-size:.9rem}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--primary-dark);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topbar-logo{font-size:1.1rem;font-weight:800;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.topbar-logo i{color:#5B9BD5}
+.topbar-sub{font-size:.78rem;opacity:.72;display:none}
+@media(min-width:600px){.topbar-sub{display:block}}
+
+/* ── LAYOUT ── */
+.main-wrap{display:flex;flex-direction:column;min-height:calc(100vh - 52px)}
+@media(min-width:960px){
+  .main-wrap{flex-direction:row;align-items:flex-start}
+  .viz-col{flex:1 1 0;min-width:0;position:sticky;top:0;height:calc(100vh - 52px);overflow-y:auto}
+  .form-col{width:420px;flex-shrink:0;height:calc(100vh - 52px);overflow-y:auto;border-left:1px solid var(--border);background:#fff}
+}
+
+/* ── VISUALIZER (unchanged from main page) ── */
+.viz-wrapper{background:var(--bg-2);overflow:hidden}
+.viz-header{background:#fff;border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.viz-tabs{display:flex;gap:5px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px}
+.viz-tab{padding:7px 16px;border-radius:calc(var(--r-sm) - 2px);font-size:.83rem;font-weight:600;color:var(--text-2);transition:all .2s;cursor:pointer;display:flex;align-items:center;gap:6px}
+.viz-tab.active{background:var(--primary);color:#fff;box-shadow:var(--shadow-sm)}
+.viz-controls{background:#fff;border-bottom:1px solid var(--border);padding:12px 20px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.viz-ctrl{display:flex;flex-direction:column;gap:4px;min-width:110px}
+.viz-ctrl label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.viz-ctrl select{padding:7px 9px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem;background:#fff;cursor:pointer}
+.viz-ctrl select:focus{outline:none;border-color:var(--primary)}
+.viz-color-row{display:flex;gap:6px;flex-wrap:wrap}
+.viz-color-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;box-shadow:var(--shadow-sm)}
+.viz-color-dot.active{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-bg)}
+.dot-gray{background:#a8a8a8}.dot-anthracite{background:#484848}.dot-brown{background:#9a6b44}
+.dot-cream{background:#d8c89a}.dot-terra{background:#c17040}.dot-mixed{background:linear-gradient(135deg,#a8a8a8 50%,#9a6b44 50%)}
+.viz-canvas-area{position:relative;background:#E4DDD4;min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.viz-canvas-area canvas{display:block;max-width:100%}
+.viz-canvas-area--3d{background:#E4DDD4}
+.viz-photo-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;gap:14px;color:var(--text-3)}
+.viz-photo-empty i{font-size:3rem;color:var(--border)}
+.viz-tooltip{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.62);color:#fff;font-size:.72rem;padding:4px 12px;border-radius:100px;pointer-events:none;white-space:nowrap}
+.viz-footer{background:#fff;border-top:1px solid var(--border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.viz-scale-info{font-size:.75rem;color:var(--text-3);display:flex;align-items:center;gap:5px}
+.viz-btns{display:flex;gap:6px}
+.viz-btns button{padding:6px 12px;border-radius:var(--r-sm);font-size:.78rem;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+.viz-btns button:hover{background:var(--bg-2)}
+.btn--sm{padding:6px 12px;font-size:.78rem;font-weight:600;border-radius:var(--r-sm);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);cursor:pointer;background:#fff;color:var(--text-2);transition:all .2s}
+.btn--sm:hover{background:var(--bg-2)}
+.btn--green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn--green:hover{background:var(--green-dark)}
+.btn--danger{background:#fee2e2;color:#dc2626;border-color:#fecaca}
+.btn-link{background:none;border:none;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;font-family:var(--font)}
+.env-hint-item{display:flex;align-items:center;gap:6px}
+.opacity-ctrl{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--text-2);margin-left:auto}
+.opacity-ctrl input[type=range]{width:80px;accent-color:var(--primary)}
+.photo-toolbar{background:#fff;border-top:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
+.photo-tb-left{display:flex;gap:6px;flex-wrap:wrap}
+.pa-panel{background:#fff;border-top:1px solid var(--border);padding:14px 18px}
+.pa-panel-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.pa-calib-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px;background:var(--primary-bg);padding:9px 12px;border-radius:var(--r-sm)}
+.pa-label{font-size:.78rem;font-weight:600;color:var(--text-2);white-space:nowrap}
+.pa-sides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:12px}
+.pa-side-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.8rem}
+.pa-side-item input{width:70px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 6px;font-size:.8rem}
+.pa-area-row{display:flex;gap:12px;flex-wrap:wrap}
+.pa-area-box{display:flex;flex-direction:column;gap:4px;min-width:140px;background:var(--bg-2);border-radius:var(--r-sm);padding:10px 14px;border:1px solid var(--border)}
+.pa-area-box span{font-size:.75rem;color:var(--text-3)}
+.pa-area-box strong{font-size:1.05rem;font-weight:700;color:var(--primary)}
+.pa-area-box input{width:100%;border:none;background:none;font-weight:700;font-size:1rem;color:var(--text-1);outline:none}
+.pa-detection-row{display:flex;flex-wrap:wrap;gap:8px}
+.pa-mat-chip{display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:var(--r-md);font-size:.8rem;font-weight:600;border:2px solid;cursor:pointer;transition:all .2s}
+.pa-mat-chip input[type=checkbox]{display:none}
+.pa-work-list{display:flex;flex-direction:column;gap:6px}
+.pa-work-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem;transition:all .2s}
+.pa-work-item.active{border-color:var(--green);background:var(--green-bg)}
+.pa-work-item input[type=checkbox]{accent-color:var(--green);width:16px;height:16px;cursor:pointer}
+.pa-work-qty{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-2)}
+.pa-work-qty input{width:60px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 6px;font-size:.78rem}
+.pa-work-fixed{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
+.pa-work-fixed-title{font-size:.75rem;font-weight:700;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.pa-cost-box{background:var(--primary-dark);color:#fff;padding:18px 20px;margin:0}
+.pa-cost-title{font-size:.8rem;font-weight:700;text-transform:uppercase;opacity:.75;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.pa-cost-row{display:flex;justify-content:space-between;font-size:.83rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.pa-cost-total{display:flex;justify-content:space-between;font-size:1.05rem;font-weight:700;padding:12px 0 4px;border-top:2px solid rgba(255,255,255,.25);margin-top:8px}
+.pa-cost-note{font-size:.72rem;opacity:.65;margin-top:8px}
+
+/* ── ESTIMATE PANEL ── */
+.viz-est-panel{background:#fff;border-top:2px solid var(--border);padding:16px 20px}
+.vest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;flex-wrap:wrap;gap:8px}
+.vest-header>span{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.vest-worktype{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-2)}
+.vest-worktype select{padding:5px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.78rem;cursor:pointer;background:#fff}
+.vest-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.vest-cols{grid-template-columns:1fr}}
+.vest-section-title{font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.vest-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--bg-3);font-size:.81rem;gap:8px}
+.vest-row .vest-label{color:var(--text-2);line-height:1.3}
+.vest-row .vest-val{font-weight:700;color:var(--primary-dark);white-space:nowrap;font-size:.83rem}
+.vest-total{display:flex;justify-content:space-between;align-items:center;font-size:1rem;font-weight:800;padding:11px 14px;border-radius:var(--r-md);background:var(--primary-dark);color:#fff;margin-top:12px}
+.vest-total strong{font-size:1.05rem}
+.vest-note{font-size:.71rem;color:var(--text-3);margin-top:7px;display:flex;align-items:center;gap:4px}
+
+/* ── QUICK FORM ── */
+.form-col{padding:0}
+.qform-wrap{padding:24px 22px}
+.qform-title{font-size:1.1rem;font-weight:800;color:var(--primary-dark);display:flex;align-items:center;gap:9px;margin-bottom:20px}
+.qform-title i{color:var(--primary);font-size:1rem}
+
+#canvas3d{cursor:grab}
+#canvas3d.grabbing{cursor:grabbing}
+
+/* Work type buttons */
+.qf-section{margin-bottom:18px}
+.qf-field-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:8px}
+.qf-work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.qf-work-btn{padding:9px 6px;border:2px solid var(--border);border-radius:var(--r-md);font-size:.78rem;font-weight:600;color:var(--text-2);cursor:pointer;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff}
+.qf-work-btn i{font-size:1.2rem;color:var(--text-3);transition:color .18s}
+.qf-work-btn.active{border-color:var(--primary);background:var(--primary-bg);color:var(--primary)}
+.qf-work-btn.active i{color:var(--primary)}
+
+/* Inputs */
+.qf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qf-field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.qf-field label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.qf-field input,.qf-field select,.qf-field textarea{
+  padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.9rem;
+  transition:border-color .2s;background:#fff;width:100%}
+.qf-field input:focus,.qf-field select:focus,.qf-field textarea:focus{outline:none;border-color:var(--primary)}
+.qf-field input.error{border-color:#e63946}
+.qf-field textarea{resize:vertical;min-height:64px}
+
+/* Area + cost display */
+.qf-info-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.qf-info-box{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.qf-info-box .lbl{font-size:.72rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.qf-info-box .val{font-size:.95rem;font-weight:700;color:var(--primary-dark)}
+
+/* Submit */
+.qf-submit{width:100%;padding:15px;background:var(--primary);color:#fff;border-radius:var(--r-md);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-top:6px}
+.qf-submit:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.qf-submit:disabled{opacity:.6;cursor:default;transform:none}
+.qf-note{text-align:center;font-size:.75rem;color:var(--text-3);margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px}
+/* Contact popup */
+.contact-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(10,20,40,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px}
+.contact-modal.open{display:flex}
+.contact-dialog{background:#fff;border-radius:var(--r-lg);width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;animation:dialogIn .22s ease}
+@keyframes dialogIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.contact-dialog-head{background:var(--primary-dark);color:#fff;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.contact-dialog-head h3{font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.contact-dialog-head .close-btn{background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;opacity:.75;line-height:1;padding:2px 6px}
+.contact-dialog-head .close-btn:hover{opacity:1}
+.contact-dialog-body{padding:22px 22px 16px}
+.contact-summary{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:18px;font-size:.82rem;color:var(--text-2);display:flex;flex-direction:column;gap:3px}
+.contact-summary strong{color:var(--text-1)}
+.contact-dialog-foot{padding:0 22px 20px;display:flex;flex-direction:column;gap:8px}
+.qf-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+
+/* Success */
+.qf-success{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;gap:16px;min-height:400px}
+.qf-success.active{display:flex}
+.qf-success i.big{font-size:3.5rem;color:var(--green)}
+.qf-success h3{font-size:1.3rem;font-weight:800;color:var(--text-1)}
+.qf-success p{font-size:.9rem;color:var(--text-2);max-width:280px}
+.qf-success .reset-btn{margin-top:8px;padding:10px 24px;background:var(--primary-bg);color:var(--primary);border-radius:var(--r-sm);font-weight:700;font-size:.9rem;cursor:pointer;border:none;transition:all .2s}
+.qf-success .reset-btn:hover{background:var(--primary);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a class="topbar-logo" href="https://joszaki.hu" style="color:inherit;text-decoration:none"><i class="fa-solid fa-layer-group"></i> TérkőMester Tervező</a>
+  <div class="topbar-sub">Látványterv és gyors ajánlatkérés</div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-wrap">
+
+  <!-- ── VISUALIZER COLUMN ── -->
+  <div class="viz-col">
+    <div class="viz-wrapper">
+      <!-- Tabs + controls -->
+      <div class="viz-header">
+        <div class="viz-tabs">
+          <button class="viz-tab active" data-tab="2d"><i class="fa-solid fa-border-all"></i> 2D</button>
+          <button class="viz-tab" data-tab="3d"><i class="fa-solid fa-cube"></i> 3D</button>
+          <button class="viz-tab" data-tab="photo"><i class="fa-solid fa-camera"></i> Saját fotó</button>
+        </div>
+        <span style="font-size:.75rem;color:var(--text-3);display:flex;align-items:center;gap:5px"><i class="fa-solid fa-link" style="color:var(--primary)"></i> Az adatok az ajánlatkérésbe szinkronizálódnak</span>
+      </div>
+      <div class="viz-controls">
+        <div class="viz-ctrl">
+          <label>Anyag / térkő</label>
+          <select id="vizPavingType">
+            <option value="standard">Standard térkő (20×10)</option>
+            <option value="premium">Prémium térkő (20×10)</option>
+            <option value="large_slab">Nagy lapkő (60×40)</option>
+            <option value="cobble">Kockakő (10×10)</option>
+          </select>
+        </div>
+        <div class="viz-ctrl">
+          <label>Mintázat</label>
+          <select id="vizPattern">
+            <option value="bond">Kötésben</option>
+            <option value="straight">Egyszerű soros</option>
+            <option value="herringbone">Halszálka (90°)</option>
+            <option value="basket">Kosárfonás</option>
+            <option value="diagonal">Átlós (45°)</option>
+          </select>
+        </div>
+        <div class="viz-ctrl">
+          <label>Szín</label>
+          <div class="viz-color-row">
+            <div class="viz-color-dot dot-gray active" data-color="gray" title="Szürke"></div>
+            <div class="viz-color-dot dot-anthracite" data-color="anthracite" title="Antracit"></div>
+            <div class="viz-color-dot dot-brown" data-color="brown" title="Barna"></div>
+            <div class="viz-color-dot dot-cream" data-color="cream" title="Krém"></div>
+            <div class="viz-color-dot dot-terra" data-color="terra" title="Terra"></div>
+            <div class="viz-color-dot dot-mixed" data-color="mixed" title="Vegyes"></div>
+          </div>
+        </div>
+        <div class="viz-ctrl">
+          <label>Előbeállítás</label>
+          <select id="vizAreaSize">
+            <option value="3x2">3 × 2 m</option>
+            <option value="5x3" selected>5 × 3 m</option>
+            <option value="6x4">6 × 4 m</option>
+            <option value="8x5">8 × 5 m</option>
+            <option value="10x6">10 × 6 m</option>
+            <option value="custom">Egyéni…</option>
+          </select>
+        </div>
+        <div class="viz-ctrl">
+          <label>Szélesség × Hossz (m)</label>
+          <div style="display:flex;gap:5px;align-items:center">
+            <input type="number" id="vizCustW" min="0.5" max="200" step="0.5" value="5" style="width:58px;padding:7px 6px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem">
+            <span style="font-size:.8rem;color:var(--text-3)">×</span>
+            <input type="number" id="vizCustH" min="0.5" max="200" step="0.5" value="3" style="width:58px;padding:7px 6px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem">
+            <span style="font-size:.75rem;color:var(--text-3)">m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2D panel -->
+      <div class="viz-panel viz-canvas-area" id="vizPanel2d">
+        <canvas id="canvas2d" width="900" height="460"></canvas>
+        <div class="viz-tooltip" id="viz2dTip">Görgetéssel zoomolhat</div>
+      </div>
+      <!-- 3D panel -->
+      <div class="viz-panel viz-canvas-area viz-canvas-area--3d" id="vizPanel3d" style="display:none">
+        <canvas id="canvas3d" width="900" height="460"></canvas>
+        <div class="viz-tooltip" id="viz3dTip">Húzással forgatható · Görgetővel zoomolható</div>
+      </div>
+      <!-- Photo panel -->
+      <div class="viz-panel" id="vizPanelPhoto" style="display:none">
+        <div class="viz-photo-empty" id="photoEmpty">
+          <i class="fa-solid fa-image"></i>
+          <p>Töltsön fel fotót a helyszínről</p>
+          <button class="btn--sm btn--green" onclick="document.getElementById('photoFileInput').click()"><i class="fa-solid fa-upload"></i> Fotó feltöltése</button>
+          <input type="file" id="photoFileInput" accept="image/*" style="display:none">
+          <p style="font-size:.75rem;color:var(--text-3);text-align:center;max-width:340px">Jelölje ki a burkolandó területet – automatikusan elemzi az anyagokat és kiszámolja a várható munkákat</p>
+        </div>
+        <div id="photoCanvasWrap" style="display:none">
+          <div id="cameraAngleBadge" style="display:none;align-items:center;gap:8px;padding:7px 12px;background:var(--primary-bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem;color:var(--text-2);margin:8px 12px 0"></div>
+          <div id="envScaleHints" style="display:none;flex-wrap:wrap;gap:7px;padding:6px 12px;background:var(--green-bg);border:1px solid #b6e8ca;border-radius:var(--r-sm);font-size:.8rem;color:#155724;margin:6px 12px 0"></div>
+          <div style="position:relative;background:#111">
+            <canvas id="photoCanvas" style="display:block;width:100%;cursor:crosshair"></canvas>
+            <div class="viz-tooltip" id="photoTip">Kattintson a terület körvonalának megjelöléshez</div>
+          </div>
+          <div class="photo-toolbar">
+            <div class="photo-tb-left">
+              <button class="btn--sm btn--green" id="btnDrawPoly"><i class="fa-solid fa-draw-polygon"></i> Terület jelölése</button>
+              <button class="btn--sm" id="btnAddPoly" style="display:none"><i class="fa-solid fa-plus"></i> Új terület</button>
+              <button class="btn--sm" id="btnUndoPoint"><i class="fa-solid fa-rotate-left"></i> Vissza</button>
+              <button class="btn--sm btn--danger" id="btnClearPoly"><i class="fa-solid fa-trash"></i> Törlés</button>
+              <button class="btn--sm" onclick="document.getElementById('photoFileInput').click()"><i class="fa-solid fa-image"></i> Új fotó</button>
+            </div>
+            <div class="opacity-ctrl"><span>Átlátszóság:</span><input type="range" id="overlayOpacity" min="20" max="95" value="72"><span id="opacityVal">72%</span></div>
+          </div>
+          <div id="photoAnalysisPanels" style="display:none">
+            <div class="pa-panel">
+              <div class="pa-panel-title"><i class="fa-solid fa-ruler"></i> Terület méretek</div>
+              <div class="pa-calib-row">
+                <span class="pa-label">Kalibrálás – ismert oldal:</span>
+                <select id="calibSideSelect" style="padding:4px 7px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.8rem"></select>
+                <input type="number" id="calibLength" min="0.1" max="200" step="0.1" value="5" style="width:64px;padding:4px 7px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.8rem">
+                <span style="font-size:.8rem">m</span>
+                <button class="btn--sm" id="btnCalibrate" style="background:var(--primary);color:#fff;border-color:var(--primary)"><i class="fa-solid fa-check"></i> OK</button>
+              </div>
+              <div class="pa-sides-grid" id="paSidesGrid"></div>
+              <div class="pa-area-row">
+                <div class="pa-area-box"><span>Számított terület</span><strong id="paAreaCalc">–</strong></div>
+                <div class="pa-area-box"><span>Kézi felülírás (m²)</span><input type="number" id="paAreaOverride" min="0.5" max="5000" step="0.5" placeholder="auto"></div>
+                <div class="pa-area-box" id="paPerimBox" style="display:none"><span>Kerület</span><strong id="paPerimeter">–</strong></div>
+              </div>
+            </div>
+            <div class="pa-panel">
+              <div class="pa-panel-title"><i class="fa-solid fa-magnifying-glass"></i> Azonosított anyagok
+                <button class="btn--sm" id="btnReanalyze" style="margin-left:auto;font-size:.72rem"><i class="fa-solid fa-rotate"></i> Újraelemzés</button>
+              </div>
+              <div id="paDetectionResult" class="pa-detection-row"><span style="color:var(--text-3);font-size:.8rem">Rajzolja körül a területet az elemzéshez</span></div>
+            </div>
+            <div class="pa-panel">
+              <div class="pa-panel-title"><i class="fa-solid fa-list-check"></i> Munkafolyamatok
+                <button class="btn--sm" id="btnAddWorkItem" style="margin-left:auto;font-size:.72rem;background:var(--green);color:#fff;border-color:var(--green)"><i class="fa-solid fa-plus"></i> Hozzáad</button>
+              </div>
+              <div id="paWorkList"></div>
+              <div class="pa-work-fixed">
+                <div class="pa-work-fixed-title"><i class="fa-solid fa-layer-group"></i> Alap térkövezési munkák</div>
+                <div id="paBaseWorkList"></div>
+              </div>
+            </div>
+            <div class="pa-cost-box">
+              <div class="pa-cost-title"><i class="fa-solid fa-calculator"></i> Becsült összes költség</div>
+              <div id="paCostRows"></div>
+              <div class="pa-cost-total" id="paCostTotal"></div>
+              <div class="pa-cost-note"><i class="fa-solid fa-circle-info"></i> Tájékoztató jellegű becslés ±20-30%.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viz footer -->
+      <div class="viz-footer">
+        <div class="viz-scale-info"><i class="fa-solid fa-ruler"></i> <span id="vizScaleInfo">Méretarány: 1:10</span></div>
+        <div class="viz-btns">
+          <button id="btnShapeDraw" onclick="toggleShapeDraw()" title="Egyéni alak rajzolása (L, H, stb.)"><i class="fa-solid fa-draw-polygon"></i> Egyéni alak</button>
+          <button id="btnShapeReset" onclick="resetShape()" style="display:none" title="Visszaállítás téglalapra"><i class="fa-solid fa-vector-square"></i> Téglalap</button>
+          <button onclick="vizZoomOut()" title="Kicsinyítés"><i class="fa-solid fa-minus"></i></button>
+          <button id="btnZoomLevel" onclick="vizZoomReset()" title="Zoom visszaállítás" style="min-width:46px">100%</button>
+          <button onclick="vizZoomIn()" title="Nagyítás"><i class="fa-solid fa-plus"></i></button>
+          <button onclick="vizDownload()"><i class="fa-solid fa-download"></i> Mentés</button>
+          <button onclick="vizFullscreen()"><i class="fa-solid fa-expand"></i></button>
+        </div>
+      </div>
+
+      <!-- Estimate panel -->
+      <div class="viz-est-panel" id="vizEstPanel">
+        <div class="vest-header">
+          <span><i class="fa-solid fa-calculator"></i> Becsült ár kalkulátor</span>
+          <div class="vest-worktype">
+            <label>Munka típusa:</label>
+            <select id="vestWorkType">
+              <option value="unknown">– válasszon –</option>
+              <option value="carport">Kocsibeálló</option>
+              <option value="sidewalk">Járda</option>
+              <option value="yard">Udvar</option>
+              <option value="terrace">Terasz</option>
+              <option value="garden">Kerti út</option>
+            </select>
+          </div>
+        </div>
+        <div class="vest-cols">
+          <div>
+            <div class="vest-section-title"><i class="fa-solid fa-box"></i> Anyagköltség</div>
+            <div id="vestMatRows"></div>
+          </div>
+          <div>
+            <div class="vest-section-title"><i class="fa-solid fa-person-digging"></i> Munkadíj</div>
+            <div id="vestLabRows"></div>
+          </div>
+        </div>
+        <div class="vest-total" id="vestTotal"><span>Becsült összesen</span><strong>–</strong></div>
+        <div class="vest-note"><i class="fa-solid fa-circle-info"></i> Tájékoztató jellegű becslés ±20–30%. Végleges ár helyszíni felmérés alapján.</div>
+      </div>
+    </div>
+  </div><!-- /viz-col -->
+
+  <!-- ── QUICK FORM COLUMN ── -->
+  <div class="form-col">
+    <!-- Success screen -->
+    <div class="qf-success" id="qfSuccess">
+      <i class="fa-solid fa-circle-check big"></i>
+      <h3>Ajánlatkérés elküldve!</h3>
+      <p>Köszönjük! 24 órán belül felvesszük Önnel a kapcsolatot a megadott elérhetőségeken.</p>
+      <button class="reset-btn" onclick="resetQForm()"><i class="fa-solid fa-rotate-left"></i> Új ajánlatkérés</button>
+    </div>
+
+    <!-- Form -->
+    <div class="qform-wrap" id="qformWrap">
+      <div class="qform-title"><i class="fa-solid fa-paper-plane"></i> Gyors ajánlatkérés</div>
+
+      <!-- Work type -->
+      <div class="qf-section">
+        <div class="qf-field-label">Munka típusa *</div>
+        <div class="qf-work-grid">
+          <button class="qf-work-btn" data-value="carport"><i class="fa-solid fa-car"></i>Kocsibeálló</button>
+          <button class="qf-work-btn" data-value="sidewalk"><i class="fa-solid fa-person-walking"></i>Járda</button>
+          <button class="qf-work-btn" data-value="yard"><i class="fa-solid fa-house"></i>Udvar</button>
+          <button class="qf-work-btn" data-value="terrace"><i class="fa-solid fa-umbrella-beach"></i>Terasz</button>
+          <button class="qf-work-btn" data-value="garden"><i class="fa-solid fa-seedling"></i>Kerti út</button>
+          <button class="qf-work-btn" data-value="other"><i class="fa-solid fa-ellipsis"></i>Egyéb</button>
+        </div>
+      </div>
+
+      <hr class="qf-divider">
+
+      <!-- Area + estimated cost (synced from viz) -->
+      <div class="qf-info-bar">
+        <div class="qf-info-box">
+          <span class="lbl">Terület (vizualizátorból)</span>
+          <span class="val" id="qfAreaVal">5 × 3 m = 15 m²</span>
+        </div>
+        <div class="qf-info-box">
+          <span class="lbl">Becsült költség</span>
+          <span class="val" id="qfCostVal">–</span>
+        </div>
+      </div>
+
+      <div class="qf-field">
+        <label for="qfNotes">Megjegyzés <span style="font-weight:400;color:var(--text-3)">(opcionális)</span></label>
+        <textarea id="qfNotes" placeholder="Pl. meglévő burkolat bontása szükséges, különleges kérések..."></textarea>
+      </div>
+
+      <button class="qf-submit" id="qfSubmit" onclick="openContactModal()">
+        <i class="fa-solid fa-paper-plane"></i> Ajánlatot kérek – ingyenes
+      </button>
+      <div class="qf-note"><i class="fa-solid fa-shield-halved" style="color:var(--green)"></i> Kötelezettség nélkül · 24 órán belül visszahívjuk</div>
+    </div>
+  </div><!-- /form-col -->
+
+</div><!-- /main-wrap -->
+
+<!-- ── CONTACT POPUP ── -->
+<div class="contact-modal" id="contactModal" onclick="if(event.target===this)closeContactModal()">
+  <div class="contact-dialog">
+    <div class="contact-dialog-head">
+      <h3><i class="fa-solid fa-paper-plane"></i> Ajánlatkérés elküldése</h3>
+      <button class="close-btn" onclick="closeContactModal()">✕</button>
+    </div>
+    <div class="contact-dialog-body">
+      <div class="contact-summary" id="contactSummary"></div>
+      <div class="qf-row">
+        <div class="qf-field">
+          <label for="qfName">Neve *</label>
+          <input id="qfName" type="text" placeholder="Kovács János" autocomplete="name">
+        </div>
+        <div class="qf-field">
+          <label for="qfPhone">Telefon *</label>
+          <input id="qfPhone" type="tel" placeholder="+36 30 123 4567" autocomplete="tel">
+        </div>
+      </div>
+      <div class="qf-field">
+        <label for="qfEmail">Email</label>
+        <input id="qfEmail" type="email" placeholder="kovacs.janos@gmail.com" autocomplete="email">
+      </div>
+      <div class="qf-row">
+        <div class="qf-field">
+          <label for="qfZip">Irányítószám</label>
+          <input id="qfZip" type="text" placeholder="1234" maxlength="4" inputmode="numeric">
+        </div>
+        <div class="qf-field">
+          <label for="qfCity">Város</label>
+          <input id="qfCity" type="text" placeholder="Budapest">
+        </div>
+      </div>
+      <div class="qf-field">
+        <label for="qfWhen">Mikor szeretné elvégeztetni?</label>
+        <select id="qfWhen">
+          <option value="asap">Minél előbb</option>
+          <option value="1month">1 hónapon belül</option>
+          <option value="3months">2–3 hónapon belül</option>
+          <option value="later">Majd valamikor</option>
+          <option value="inquiry">Csak érdeklődöm</option>
+        </select>
+      </div>
+    </div>
+    <div class="contact-dialog-foot">
+      <button class="qf-submit" id="qfSubmitModal" onclick="submitQForm()">
+        <i class="fa-solid fa-paper-plane"></i> Küldés
+      </button>
+      <div class="qf-note"><i class="fa-solid fa-shield-halved" style="color:var(--green)"></i> Kötelezettség nélkül · 24 órán belül visszahívjuk</div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const PRICING = {
+  material:   { standard:{min:2800,max:4200}, premium:{min:4500,max:7000}, large_slab:{min:6500,max:11000}, cobble:{min:3200,max:5500} },
+  foundation: { pedestrian:{min:2500,max:3500}, car:{min:3500,max:5000}, heavy:{min:6500,max:9500}, unknown:{min:3000,max:6000} },
+  labor:      { pedestrian:{min:4500,max:6500}, car:{min:6500,max:8500}, heavy:{min:8500,max:12000}, unknown:{min:5000,max:9000} }
+};
+const LOAD_BY_WORK = { carport:'car', sidewalk:'pedestrian', yard:'pedestrian', terrace:'pedestrian', garden:'pedestrian', other:'unknown' };
+const BASE_MAT_PRICING = {
+  pedestrian:{min:1800,max:3000}, car:{min:2800,max:4500},
+  heavy:{min:4000,max:6500},      unknown:{min:2000,max:3800}
+};
+
+// ── VIZ STATE ─────────────────────────────────────────────────────────────────
+const VIZ = { tab:'2d', color:'gray', pattern:'bond', pavingType:'standard', area:{w:5,h:3}, zoom:1,
+  polygon:null, polyDraft:[], polyDrawing:false };
+const PAL = {
+  gray:      ['#a8a5a0','#c8c5c0','#787570','#d0ccc8'],
+  anthracite:['#484848','#606060','#282828','#555050'],
+  brown:     ['#9a6b44','#c49060','#6b3c20','#c0a080'],
+  cream:     ['#d8c89a','#f0e4be','#b0a070','#e0d4b0'],
+  terra:     ['#c17040','#e09060','#883010','#d0a080'],
+  mixed:     ['#9a9080','#c0b8a8','#706860','#c0b8a8']
+};
+const BRICK_DIM = { standard:[200,100], premium:[200,100], large_slab:[600,400], cobble:[100,100] };
+
+// ── QUICK FORM STATE ──────────────────────────────────────────────────────────
+const QF = { workType:'', name:'', phone:'', email:'', zip:'', city:'', when:'asap', notes:'' };
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function el(id){ return document.getElementById(id); }
+function c2d(){ return el('canvas2d'); }
+function c3d(){ return el('canvas3d'); }
+function lightenHex(hex, amt) {
+  const c = parseInt(hex.replace('#',''), 16);
+  const r = Math.min(255, Math.max(0, (c>>16) + amt));
+  const g = Math.min(255, Math.max(0, ((c>>8)&0xff) + amt));
+  const b = Math.min(255, Math.max(0, (c&0xff) + amt));
+  return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+function darkenHex(hex, amt){ return lightenHex(hex, -amt); }
+
+
+// ── QUICK FORM LOGIC ──────────────────────────────────────────────────────────
+document.querySelectorAll('.qf-work-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.qf-work-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    QF.workType = btn.dataset.value;
+    const vw=el('vestWorkType'); if(vw) vw.value=QF.workType;
+    updateQFCost();
+  });
+});
+['qfName','qfPhone','qfEmail','qfZip','qfCity','qfNotes'].forEach(id => {
+  const fld = el(id); if (!fld) return;
+  fld.addEventListener('input', () => QF[id.replace('qf','').toLowerCase()] = fld.value);
+});
+el('qfWhen') && el('qfWhen').addEventListener('change', e => QF.when = e.target.value);
+
+function updateQFCost() {
+  const hasPoly = VIZ.polygon && VIZ.polygon.length >= 3;
+  const area = hasPoly ? polyArea(VIZ.polygon) : (VIZ.area.w * VIZ.area.h);
+  const mat = PRICING.material[VIZ.pavingType] || PRICING.material.standard;
+  const lt = LOAD_BY_WORK[QF.workType] || 'unknown';
+  const found = PRICING.foundation[lt], lab = PRICING.labor[lt];
+  const minT = Math.round((mat.min + found.min + lab.min) * area / 1000) * 1000;
+  const maxT = Math.round((mat.max + found.max + lab.max) * area / 1000) * 1000;
+  el('qfCostVal').textContent = `${(minT/1000).toFixed(0)}–${(maxT/1000).toFixed(0)} ezer Ft`;
+  el('qfAreaVal').textContent = hasPoly
+    ? `Rajzolt alak: ${area.toFixed(2)} m²`
+    : `${VIZ.area.w} × ${VIZ.area.h} m = ${area.toFixed(1)} m²`;
+  updateEstPanel();
+}
+
+function updateEstPanel() {
+  const area = VIZ.polygon && VIZ.polygon.length>=3 ? polyArea(VIZ.polygon) : (VIZ.area.w * VIZ.area.h);
+  const lt = LOAD_BY_WORK[QF.workType] || 'unknown';
+  const mat = PRICING.material[VIZ.pavingType] || PRICING.material.standard;
+  const baseMat = BASE_MAT_PRICING[lt];
+  const found = PRICING.foundation[lt];
+  const lab   = PRICING.labor[lt];
+  const typeLabel = {standard:'Standard (20×10)',premium:'Prémium (20×10)',large_slab:'Lapkő (60×40)',cobble:'Kockakő (10×10)'}[VIZ.pavingType]||'Térkő';
+  function fmtR(min,max,a){
+    const mn=Math.round(min*a/1000)*1000, mx=Math.round(max*a/1000)*1000;
+    return `<span style="font-size:.75rem;color:var(--text-3)">${(a).toFixed(1)} m² × ${min}–${max} Ft</span><br>${(mn/1000).toFixed(0)}–${(mx/1000).toFixed(0)} ezer Ft`;
+  }
+  const items_mat = [
+    {label:`Térkő anyag`, sub:typeLabel, min:mat.min, max:mat.max},
+    {label:'Alap anyagok', sub:'homok, zúzottkő, geotextília', min:baseMat.min, max:baseMat.max}
+  ];
+  const items_lab = [
+    {label:'Alap előkészítés', sub:'tömörítés, alap kiépítés', min:found.min, max:found.max},
+    {label:'Térkő lerakás', sub:'lerakás + fugázás', min:lab.min, max:lab.max}
+  ];
+  const mr=el('vestMatRows'), lr=el('vestLabRows'); if(!mr||!lr)return;
+  mr.innerHTML=items_mat.map(i=>`<div class="vest-row"><span class="vest-label">${i.label}<br><span style="font-size:.72rem;color:var(--text-3)">${i.sub}</span></span><span class="vest-val">${(Math.round(i.min*area/1000)*1000/1000).toFixed(0)}–${(Math.round(i.max*area/1000)*1000/1000).toFixed(0)} ezer Ft</span></div>`).join('');
+  lr.innerHTML=items_lab.map(i=>`<div class="vest-row"><span class="vest-label">${i.label}<br><span style="font-size:.72rem;color:var(--text-3)">${i.sub}</span></span><span class="vest-val">${(Math.round(i.min*area/1000)*1000/1000).toFixed(0)}–${(Math.round(i.max*area/1000)*1000/1000).toFixed(0)} ezer Ft</span></div>`).join('');
+  const allMin=[...items_mat,...items_lab].reduce((s,i)=>s+i.min*area,0);
+  const allMax=[...items_mat,...items_lab].reduce((s,i)=>s+i.max*area,0);
+  const mn=Math.round(allMin/1000)*1000, mx=Math.round(allMax/1000)*1000;
+  const tot=el('vestTotal');
+  if(tot)tot.innerHTML=`<span>Becsült összesen (${area.toFixed(1)} m²)</span><strong>${(mn/1000).toFixed(0)}–${(mx/1000).toFixed(0)} ezer Ft</strong>`;
+}
+
+function openContactModal() {
+  if (!QF.workType) { alert('Kérjük válasszon munkatípust!'); return; }
+  // Fill summary
+  const wMap={carport:'Kocsibeálló',sidewalk:'Járda',yard:'Udvar',terrace:'Terasz',garden:'Kerti út',other:'Egyéb'};
+  const area = VIZ.polygon ? polyArea(VIZ.polygon).toFixed(1)+' m²' : `${VIZ.area.w}×${VIZ.area.h} m`;
+  const cost = el('qfCostVal').textContent;
+  el('contactSummary').innerHTML =
+    `<strong>Munka:</strong> ${wMap[QF.workType]||QF.workType} &nbsp;·&nbsp; <strong>Terület:</strong> ${area} &nbsp;·&nbsp; <strong>Becsült ár:</strong> ${cost}`;
+  el('contactModal').classList.add('open');
+  setTimeout(()=>el('qfName').focus(), 80);
+}
+function closeContactModal() {
+  el('contactModal').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeContactModal(); });
+
+function submitQForm() {
+  if (!el('qfName').value.trim()) { el('qfName').classList.add('error'); el('qfName').focus(); return; }
+  if (!el('qfPhone').value.trim()) { el('qfPhone').classList.add('error'); el('qfPhone').focus(); return; }
+  el('qfName').classList.remove('error'); el('qfPhone').classList.remove('error');
+
+  const btn = el('qfSubmitModal');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Küldés...';
+
+  const area = VIZ.polygon ? polyArea(VIZ.polygon).toFixed(2)+' m²' : `${VIZ.area.w}x${VIZ.area.h}`;
+  const data = {
+    workType: QF.workType, area,
+    material: VIZ.pavingType, color: VIZ.color, pattern: VIZ.pattern,
+    name: el('qfName').value, phone: el('qfPhone').value,
+    email: el('qfEmail').value, zip: el('qfZip').value,
+    city: el('qfCity').value, when: el('qfWhen').value,
+    notes: el('qfNotes').value
+  };
+  console.log('Ajánlatkérés adatok:', data);
+  // TODO: POST data to your backend endpoint
+  // fetch('/api/quote', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+
+  setTimeout(() => {
+    closeContactModal();
+    el('qformWrap').style.display = 'none';
+    el('qfSuccess').classList.add('active');
+  }, 900);
+}
+
+function resetQForm() {
+  QF.workType = ''; QF.name = ''; QF.phone = ''; QF.email = ''; QF.zip = ''; QF.city = ''; QF.notes = '';
+  document.querySelectorAll('.qf-work-btn').forEach(b => b.classList.remove('active'));
+  ['qfName','qfPhone','qfEmail','qfZip','qfCity','qfNotes'].forEach(id => { if(el(id)) el(id).value = ''; });
+  const btn = el('qfSubmitModal'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Küldés';}
+  el('qfSuccess').classList.remove('active');
+  el('qformWrap').style.display = '';
+}
+
+// ── VISUALIZER RENDERING ──────────────────────────────────────────────────────
+// (2D renderer, draw functions, pattern helpers, 3D renderer – self-contained)
+
+function drawBond(ctx, W, H, bw, bh, pal) {
+  for (let row=0,y=0; y<H+bh; y+=bh,row++) {
+    const xoff = row%2===1 ? bw/2 : 0;
+    for (let x=-xoff; x<W+bw; x+=bw) {
+      const cx=Math.max(x,0),cw=Math.min(x+bw,W)-cx-1,cy=y,ch=Math.min(y+bh,H)-cy-1;
+      if(cw<1||ch<1)continue;
+      ctx.fillStyle=pal[0]; ctx.fillRect(cx,cy,cw,ch);
+      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(cx+.5,cy+.5,cw-1,ch-1);
+    }
+  }
+}
+function drawStraight(ctx,W,H,bw,bh,pal) {
+  for(let y=0;y<H;y+=bh) for(let x=0;x<W;x+=bw) {
+    const cw=Math.min(bw,W-x)-1,ch=Math.min(bh,H-y)-1;
+    ctx.fillStyle=pal[0]; ctx.fillRect(x,y,cw,ch);
+    ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,cw-1,ch-1);
+  }
+}
+function drawHerringbone(ctx,W,H,bw,bh,pal) {
+  const c0=pal[0], c1=lightenHex(pal[0],12);
+  // Alternating horizontal bands (bh tall, bw-wide bricks) and vertical bands (bw tall, bh-wide bricks)
+  // Each band pair flips horizontal offset by bh to create the zigzag
+  let y=-bw, flip=0;
+  while(y<H+bw) {
+    // H-band: horizontal bricks (bw × bh)
+    const hx0=flip?bh:0;
+    for(let x=-bw+hx0;x<W+bw;x+=bw) {
+      const ci=(Math.floor((x-hx0+2*bw)/bw)+flip)%2;
+      ctx.fillStyle=ci?c1:c0; ctx.fillRect(x,y,bw-1,bh-1);
+      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+    }
+    y+=bh;
+    // V-band: vertical bricks (bh × bw)
+    const vx0=flip?0:bh;
+    for(let x=-bh+vx0;x<W+bh;x+=bh) {
+      const ci=(Math.floor((x-vx0+2*bh)/bh)+flip)%2;
+      ctx.fillStyle=ci?c1:c0; ctx.fillRect(x,y,bh-1,bw-1);
+      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bh-2,bw-2);
+    }
+    y+=bw; flip^=1;
+  }
+}
+function drawBasket(ctx,W,H,bw,bh,pal) {
+  const c0=pal[0], c1=lightenHex(pal[0],10);
+  const cs=bw; // cell size = bw (= 2*bh for standard 2:1 brick)
+  for(let row=-1;row*cs<H+cs;row++) {
+    for(let col=-1;col*cs<W+cs;col++) {
+      const x=col*cs, y=row*cs;
+      const ci=((col+row)%2+2)%2;
+      ctx.fillStyle=ci?c1:c0; ctx.strokeStyle=pal[3]; ctx.lineWidth=1;
+      if(ci===0) {
+        // H-group: 2 horizontal bricks stacked (bw × bh each)
+        ctx.fillRect(x,y,bw-1,bh-1); ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+        ctx.fillRect(x,y+bh,bw-1,bh-1); ctx.strokeRect(x+.5,y+bh+.5,bw-2,bh-2);
+      } else {
+        // V-group: 2 vertical bricks side by side (bh × bw each)
+        ctx.fillRect(x,y,bh-1,bw-1); ctx.strokeRect(x+.5,y+.5,bh-2,bw-2);
+        ctx.fillRect(x+bh,y,bh-1,bw-1); ctx.strokeRect(x+bh+.5,y+.5,bh-2,bw-2);
+      }
+    }
+  }
+}
+function drawDiagonal(ctx,W,H,bw,bh,pal) {
+  ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(Math.PI/4);
+  const sw=W+H;
+  for(let row=-Math.ceil(sw/bh),y=row*bh; y<sw; y+=bh,row++) {
+    for(let col=-Math.ceil(sw/bw),x=col*bw; x<sw; x+=bw,col++) {
+      const ci=((row+col)%2+2)%2;
+      ctx.fillStyle=ci?pal[0]:lightenHex(pal[0],8);
+      ctx.fillRect(x,y,bw-1,bh-1);
+      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+    }
+  }
+  ctx.restore();
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function ptInPoly(px, py, poly) {
+  let inside = false;
+  for (let i=0, j=poly.length-1; i<poly.length; j=i++) {
+    const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+    if (((yi>py)!==(yj>py)) && (px<(xj-xi)*(py-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function polyArea(poly) {
+  let a=0;
+  for (let i=0;i<poly.length;i++){const j=(i+1)%poly.length;a+=poly[i].x*poly[j].y-poly[j].x*poly[i].y;}
+  return Math.abs(a)/2;
+}
+function getViz2DLayout(cv) {
+  const aw=VIZ.area.w, ah=VIZ.area.h, [bl,bs]=BRICK_DIM[VIZ.pavingType];
+  // pxPerMm: how many canvas pixels correspond to 1 mm in the real world
+  const pxPerMm = Math.min(cv.width*0.82/(aw*1000), cv.height*0.82/(ah*1000)) * VIZ.zoom;
+  const bw=bl*pxPerMm, bh=bs*pxPerMm;
+  const aW=aw*1000*pxPerMm, aH=ah*1000*pxPerMm;
+  return {ox:(cv.width-aW)/2, oy:(cv.height-aH)/2, aW, aH, aw, ah, bw, bh, bl, bs, cellPx:pxPerMm};
+}
+
+function toggleShapeDraw() {
+  if (VIZ.polyDrawing) { VIZ.polyDrawing=false; VIZ.polyDraft=[]; }
+  else { VIZ.polygon=null; VIZ.polyDraft=[]; VIZ.polyDrawing=true; }
+  el('canvas2d').style.cursor = VIZ.polyDrawing ? 'crosshair' : '';
+  el('btnShapeDraw').style.background = VIZ.polyDrawing ? 'var(--primary)' : '';
+  el('btnShapeDraw').style.color = VIZ.polyDrawing ? '#fff' : '';
+  el('btnShapeReset').style.display = VIZ.polygon ? '' : 'none';
+  renderActive();
+}
+function resetShape() {
+  VIZ.polygon=null; VIZ.polyDraft=[]; VIZ.polyDrawing=false;
+  el('canvas2d').style.cursor='';
+  el('btnShapeDraw').style.background=''; el('btnShapeDraw').style.color='';
+  el('btnShapeReset').style.display='none';
+  renderActive(); updateQFCost();
+}
+function closePolyDraft() {
+  if (VIZ.polyDraft.length<3) return;
+  VIZ.polygon=[...VIZ.polyDraft]; VIZ.polyDraft=[]; VIZ.polyDrawing=false;
+  el('canvas2d').style.cursor='';
+  el('btnShapeDraw').style.background=''; el('btnShapeDraw').style.color='';
+  el('btnShapeReset').style.display='';
+  renderActive(); updateQFCost();
+}
+
+function renderViz(cv) {
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pal = PAL[VIZ.color]||PAL.gray;
+  const {ox,oy,aW,aH,aw,ah,bw,bh,bl,cellPx} = getViz2DLayout(cv);
+
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#F2EDE7'); bg.addColorStop(1,'#E4DDD4');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(160,148,135,.3)'; ctx.lineWidth=1;
+  for(let x=20;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=20;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const drawFn={bond:drawBond,straight:drawStraight,herringbone:drawHerringbone,basket:drawBasket,diagonal:drawDiagonal};
+  const wToS = (wx,wy) => ({x:ox+wx/aw*aW, y:oy+wy/ah*aH});
+
+  if (VIZ.polygon && VIZ.polygon.length>=3) {
+    // Fill polygon with tile pattern
+    ctx.save();
+    ctx.translate(ox,oy);
+    ctx.beginPath();
+    VIZ.polygon.forEach((pt,i)=>{const s=wToS(pt.x,pt.y);i===0?ctx.moveTo(s.x-ox,s.y-oy):ctx.lineTo(s.x-ox,s.y-oy);});
+    ctx.closePath(); ctx.clip();
+    (drawFn[VIZ.pattern]||drawBond)(ctx,aW,aH,bw,bh,pal);
+    ctx.restore();
+    // Polygon border
+    ctx.strokeStyle=darkenHex(pal[3],20); ctx.lineWidth=2.5;
+    ctx.beginPath();
+    VIZ.polygon.forEach((pt,i)=>{const s=wToS(pt.x,pt.y);i===0?ctx.moveTo(s.x,s.y):ctx.lineTo(s.x,s.y);});
+    ctx.closePath(); ctx.stroke();
+    // Vertex handles
+    VIZ.polygon.forEach(pt=>{const s=wToS(pt.x,pt.y);ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=darkenHex(pal[3],30);ctx.lineWidth=1.5;ctx.stroke();});
+    // Area label at centroid
+    const cx=VIZ.polygon.reduce((a,p)=>a+p.x,0)/VIZ.polygon.length;
+    const cy=VIZ.polygon.reduce((a,p)=>a+p.y,0)/VIZ.polygon.length;
+    const sc=wToS(cx,cy);
+    const area=polyArea(VIZ.polygon);
+    ctx.fillStyle='rgba(40,28,18,.80)'; ctx.font='bold 13px Nunito,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(`${area.toFixed(1)} m²`,sc.x,sc.y+5);
+    el('vizScaleInfo').textContent=`Terület: ${area.toFixed(2)} m²`;
+  } else {
+    // Rectangle
+    ctx.save(); ctx.translate(ox,oy); ctx.beginPath(); ctx.rect(0,0,aW,aH); ctx.clip();
+    (drawFn[VIZ.pattern]||drawBond)(ctx,aW,aH,bw,bh,pal);
+    ctx.restore();
+    ctx.strokeStyle=darkenHex(pal[3],20); ctx.lineWidth=2; ctx.strokeRect(ox,oy,aW,aH);
+    ctx.fillStyle='rgba(40,28,18,.78)'; ctx.font='bold 13px Nunito,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(`${aw} m`,ox+aW/2,oy-8);
+    ctx.save(); ctx.translate(ox-10,oy+aH/2); ctx.rotate(-Math.PI/2); ctx.fillText(`${ah} m`,0,0); ctx.restore();
+    el('vizScaleInfo').textContent=`Méretarány: 1px = ${(1/cellPx).toFixed(1)} mm  |  Terület: ${(aw*ah).toFixed(1)} m²`;
+  }
+
+  // Draft polygon while drawing
+  if (VIZ.polyDraft.length>0) {
+    ctx.strokeStyle='rgba(51,122,183,.85)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    VIZ.polyDraft.forEach((pt,i)=>{const s=wToS(pt.x,pt.y);i===0?ctx.moveTo(s.x,s.y):ctx.lineTo(s.x,s.y);});
+    ctx.stroke(); ctx.setLineDash([]);
+    VIZ.polyDraft.forEach((pt,i)=>{
+      const s=wToS(pt.x,pt.y);
+      ctx.beginPath(); ctx.arc(s.x,s.y,i===0?8:5,0,Math.PI*2);
+      ctx.fillStyle=i===0?'#22A651':'#337AB7'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    });
+    // Hint
+    if (VIZ.polyDraft.length>=3) {
+      ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,H-28,W,28);
+      ctx.fillStyle='#fff'; ctx.font='11px Nunito,sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Kattintson az 1. zöld pontra a lezáráshoz, vagy duplán kattintson',W/2,H-10);
+    }
+  } else if (VIZ.polyDrawing) {
+    ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,H-28,W,28);
+    ctx.fillStyle='#fff'; ctx.font='11px Nunito,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Kattintson a terület sarokpontjaira (L, H, vagy bármilyen alak)',W/2,H-10);
+  }
+}
+
+function render2D() { renderViz(c2d()); }
+
+// ── 3D CAMERA STATE ───────────────────────────────────────────────────────────
+const R3D = { yaw: 0, zoom: 1 };
+
+function render3D() {
+  const cv = c3d(); if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  const aw = VIZ.area.w, ah = VIZ.area.h;
+  const pal = PAL[VIZ.color]||PAL.gray;
+
+  const Z = R3D.zoom;
+  const baseT = (W * 0.72) / Math.max(aw+2, ah+2) * Z;
+  const TW = baseT, TH = baseT * 0.5, TZ = baseT * 0.88;
+  const cosA = Math.cos(R3D.yaw), sinA = Math.sin(R3D.yaw);
+  const slabH = 0.06;
+
+  function rot(wx, wy) { return { rx: wx*cosA - wy*sinA, ry: wx*sinA + wy*cosA }; }
+
+  // Center the slab on canvas regardless of yaw
+  const sc = [[0,0],[aw,0],[aw,ah],[0,ah]].map(([x,y]) => rot(x,y));
+  const rxMid = (Math.min(...sc.map(c=>c.rx)) + Math.max(...sc.map(c=>c.rx))) / 2;
+  const ryMid = (Math.min(...sc.map(c=>c.ry)) + Math.max(...sc.map(c=>c.ry))) / 2;
+  const ox = W/2 - (rxMid - ryMid) * TW;
+  const oy = H*0.52 + (rxMid + ryMid) * TH;
+
+  function p(wx, wy, wz=0) {
+    const {rx, ry} = rot(wx, wy);
+    return { x: ox + (rx - ry) * TW, y: oy - (rx + ry) * TH - wz * TZ };
+  }
+  function face(pts, fill, stroke, lw) {
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+    if (fill) { ctx.fillStyle=fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle=stroke; ctx.lineWidth=lw||0.8; ctx.stroke(); }
+  }
+  function box(x, y, z, w, d, h, top, left, right) {
+    face([p(x,y+d,z),p(x+w,y+d,z),p(x+w,y+d,z+h),p(x,y+d,z+h)], left, 'rgba(0,0,0,.18)', .5);
+    face([p(x+w,y,z),p(x+w,y+d,z),p(x+w,y+d,z+h),p(x+w,y,z+h)], right, 'rgba(0,0,0,.18)', .5);
+    face([p(x,y,z+h),p(x+w,y,z+h),p(x+w,y+d,z+h),p(x,y+d,z+h)], top, 'rgba(0,0,0,.18)', .5);
+  }
+  function rng(x, y) { const n=Math.sin(x*127.1+y*311.7)*43758.5453; return n-Math.floor(n); }
+
+  // Background – warm neutral, no blue
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#F2EDE7'); bg.addColorStop(1, '#E4DDD4');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(160,148,135,.28)'; ctx.lineWidth = 1;
+  const gS = Math.max(1, Math.round(TW * 1.4));
+  for (let x=gS/2; x<W; x+=gS) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=gS/2; y<H; y+=gS) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  const poly3d = VIZ.polygon && VIZ.polygon.length>=3 ? VIZ.polygon : null;
+
+  // Drop shadow – warm dark, not blue
+  ctx.save(); ctx.globalAlpha = .14;
+  if (poly3d) {
+    ctx.beginPath(); poly3d.forEach((pt,i)=>{const sp=p(pt.x+.15,pt.y+.15);i===0?ctx.moveTo(sp.x,sp.y):ctx.lineTo(sp.x,sp.y);}); ctx.closePath();
+    ctx.fillStyle='#3a2a18'; ctx.fill();
+  } else { face([p(-.2,.2),p(aw+.2,.2),p(aw+.2,ah+.2),p(-.2,ah+.2)],'#3a2a18'); }
+  ctx.restore();
+
+  // Tile dimensions
+  let bw, bh;
+  if (VIZ.pavingType==='large_slab') { bw=.60; bh=.40; }
+  else if (VIZ.pavingType==='cobble') { bw=.10; bh=.10; }
+  else { bw=.20; bh=.10; }
+  let tw=bw, th=bh;
+  while ((aw/tw)*(ah/th) > 500) { tw*=2; th*=2; }
+
+  // Joint plane (polygon or rect)
+  if (poly3d) {
+    ctx.beginPath(); poly3d.forEach((pt,i)=>{const sp=p(pt.x,pt.y);i===0?ctx.moveTo(sp.x,sp.y):ctx.lineTo(sp.x,sp.y);}); ctx.closePath();
+    ctx.fillStyle=darkenHex(pal[3],20); ctx.fill();
+  } else { face([p(0,0),p(aw,0),p(aw,ah),p(0,ah)],darkenHex(pal[3],20)); }
+
+  // Slab perimeter edges (polygon or 4 rect edges)
+  if (poly3d) {
+    const pedges = poly3d.map((pt,i)=>{
+      const next=poly3d[(i+1)%poly3d.length];
+      const mx=(pt.x+next.x)/2, my=(pt.y+next.y)/2;
+      return {pts:[p(pt.x,pt.y,0),p(next.x,next.y,0),p(next.x,next.y,slabH),p(pt.x,pt.y,slabH)], col:darkenHex(pal[3],52), d:rot(mx,my).ry};
+    });
+    pedges.sort((a,b)=>b.d-a.d);
+    pedges.forEach(e=>face(e.pts,e.col,'rgba(0,0,0,.18)',.5));
+  } else {
+    const edges=[
+      {pts:[p(0,ah,0),p(aw,ah,0),p(aw,ah,slabH),p(0,ah,slabH)],col:darkenHex(pal[3],48),d:rot(aw/2,ah).ry},
+      {pts:[p(aw,0,0),p(aw,ah,0),p(aw,ah,slabH),p(aw,0,slabH)],col:darkenHex(pal[3],64),d:rot(aw,ah/2).ry},
+      {pts:[p(0,0,0),p(aw,0,0),p(aw,0,slabH),p(0,0,slabH)],col:darkenHex(pal[3],55),d:rot(aw/2,0).ry},
+      {pts:[p(0,0,0),p(0,ah,0),p(0,ah,slabH),p(0,0,slabH)],col:darkenHex(pal[3],40),d:rot(0,ah/2).ry},
+    ];
+    edges.sort((a,b)=>b.d-a.d); edges.forEach(e=>face(e.pts,e.col,'rgba(0,0,0,.22)',.6));
+  }
+
+  // Collect all tiles, filter by polygon if set, sort back-to-front
+  const tiles = [];
+  const pat3d = VIZ.pattern;
+  function addTile(cx,cy,cw,ch,isV) {
+    const cw2=Math.min(cx+cw,aw)-cx-.008, ch2=Math.min(cy+ch,ah)-cy-.008;
+    if(cw2<.012||ch2<.012) return;
+    if(poly3d && !ptInPoly(cx+cw2/2,cy+ch2/2,poly3d)) return;
+    tiles.push({cx,cy,cw2,ch2,isV:!!isV,depth:rot(cx+cw2/2,cy+ch2/2).ry});
+  }
+  if(pat3d==='herringbone') {
+    let gy=0, flip=0;
+    while(gy<ah-.001) {
+      const hH=Math.min(th,ah-gy), hx0=flip?th:0;
+      for(let gx=-hx0;gx<aw+tw-.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,hH,false);
+      gy+=hH; if(gy>=ah-.001) break;
+      const vH=Math.min(tw,ah-gy), vx0=flip?0:th;
+      for(let gx=-vx0;gx<aw+th-.001;gx+=th) addTile(Math.max(gx,0),gy,th,vH,true);
+      gy+=vH; flip^=1;
+    }
+  } else if(pat3d==='basket') {
+    const cs=tw;
+    for(let gy=0;gy<ah-.001;gy+=cs) for(let gx=0;gx<aw-.001;gx+=cs) {
+      const isH=((Math.round(gx/cs)+Math.round(gy/cs))%2+2)%2===0;
+      if(isH) {
+        addTile(gx,gy,tw,th,false); addTile(gx,gy+th,tw,th,false);
+      } else {
+        addTile(gx,gy,th,tw,true); addTile(gx+th,gy,th,tw,true);
+      }
+    }
+  } else {
+    for(let gy=0;gy<ah-.001;gy+=th) {
+      const row=Math.round(gy/th);
+      const xOff=(pat3d==='bond'&&row%2===1)?tw/2:0;
+      for(let gx=-xOff;gx<aw+tw-.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,th,false);
+    }
+  }
+  tiles.sort((a,b) => b.depth - a.depth);
+
+  tiles.forEach(({ cx, cy, cw2, ch2, isV }) => {
+    const vari = (rng(Math.round(cx/th*10), Math.round(cy/th*10)) - .5) * 20;
+    let base = pal[0];
+    if(pat3d==='herringbone') base = isV ? lightenHex(pal[0],14) : pal[0];
+    if(pat3d==='basket') { const cr=Math.floor(cy/tw),cc=Math.floor(cx/tw); base=(cr+cc)%2?lightenHex(pal[0],10):pal[0]; }
+    if(pat3d==='diagonal') base = Math.floor((cx+cy)/tw)%2 ? lightenHex(pal[0],8) : pal[0];
+    const tTop = lightenHex(base, vari);
+    box(cx, cy, 0, cw2, ch2, slabH, tTop, darkenHex(tTop,22), darkenHex(tTop,38));
+    if (vari>3) {
+      ctx.save(); ctx.globalAlpha=.08;
+      face([p(cx,cy,slabH),p(cx+cw2*.6,cy,slabH),p(cx+cw2*.6,cy+ch2*.28,slabH),p(cx,cy+ch2*.28,slabH)],'#fff');
+      ctx.restore();
+    }
+  });
+
+  // Dimension lines (only in rectangle mode)
+  if (!poly3d) {
+    const dimCol = 'rgba(80,60,40,.60)';
+    ctx.strokeStyle=dimCol; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    const dOff = .5;
+    const wA=p(0,ah+dOff,slabH), wB=p(aw,ah+dOff,slabH);
+    ctx.beginPath(); ctx.moveTo(wA.x,wA.y); ctx.lineTo(wB.x,wB.y); ctx.stroke();
+    const dA=p(aw+dOff,0,slabH), dB=p(aw+dOff,ah,slabH);
+    ctx.beginPath(); ctx.moveTo(dA.x,dA.y); ctx.lineTo(dB.x,dB.y); ctx.stroke();
+    ctx.setLineDash([]);
+    [[wA,wB],[dA,dB]].forEach(([a,b])=>{
+      const nx=(b.y-a.y)/Math.hypot(b.x-a.x,b.y-a.y)*5,ny=-(b.x-a.x)/Math.hypot(b.x-a.x,b.y-a.y)*5;
+      [a,b].forEach(pt=>{ctx.beginPath();ctx.moveTo(pt.x-nx,pt.y-ny);ctx.lineTo(pt.x+nx,pt.y+ny);ctx.stroke();});
+    });
+    ctx.fillStyle=dimCol; ctx.font='bold 11px Nunito,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(`${aw} m`,p(aw/2,ah+dOff+.22,slabH).x,p(aw/2,ah+dOff+.22,slabH).y);
+    ctx.fillText(`${ah} m`,p(aw+dOff+.25,ah/2,slabH).x,p(aw+dOff+.25,ah/2,slabH).y);
+  }
+
+  // Label pill
+  const ptMap={standard:'Standard térkő',premium:'Prémium térkő',large_slab:'Lapburkolat',cobble:'Macskakő'};
+  const patMap={bond:'Kötőköves',straight:'Egyenes',herringbone:'Halszálkás',basket:'Kosárfonásos',diagonal:'Átlós'};
+  const areaLabel = poly3d ? `${polyArea(poly3d).toFixed(1)} m²` : `${aw}×${ah} m`;
+  const labelText=`${ptMap[VIZ.pavingType]||'Térkő'}  ·  ${patMap[VIZ.pattern]||''}  ·  ${areaLabel}`;
+  ctx.font='bold 12px Nunito,sans-serif';
+  const lmW=ctx.measureText(labelText).width+28;
+  ctx.fillStyle='rgba(40,28,18,.82)';
+  ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(10,10,lmW,30,7); else ctx.rect(10,10,lmW,30); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.fillText(labelText,22,30);
+  // Rotation hint overlay
+  ctx.fillStyle='rgba(80,60,40,.38)'; ctx.font='10px Nunito,sans-serif'; ctx.textAlign='right';
+  ctx.fillText('← húzás: forgat  |  scroll: zoom →', W-10, H-8);
+}
+
+function renderActive(){
+  if(VIZ.tab==='2d')render2D();
+  else if(VIZ.tab==='3d')render3D();
+  else if(VIZ.tab==='photo')renderPhotoOverlay();
+}
+
+// ── 3D INTERACTIVE CONTROLS ───────────────────────────────────────────────────
+(function(){
+  const cv = el('canvas3d');
+  let dragging=false, lastX=0, pinchDist=0;
+  cv.addEventListener('mousedown', e => { dragging=true; lastX=e.clientX; cv.classList.add('grabbing'); });
+  window.addEventListener('mouseup', () => { dragging=false; cv.classList.remove('grabbing'); });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    R3D.yaw += (e.clientX - lastX) * 0.012;
+    lastX = e.clientX;
+    if (VIZ.tab==='3d') render3D();
+  });
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    R3D.zoom = Math.max(0.1, Math.min(20, R3D.zoom * (e.deltaY < 0 ? 1.13 : 1/1.13)));
+    updateZoomBtn(); if (VIZ.tab==='3d') render3D();
+  }, { passive: false });
+  cv.addEventListener('touchstart', e => {
+    if (e.touches.length===1) { dragging=true; lastX=e.touches[0].clientX; }
+    else if (e.touches.length===2) { dragging=false; pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
+  }, { passive: true });
+  cv.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length===1 && dragging) {
+      R3D.yaw += (e.touches[0].clientX - lastX) * 0.014;
+      lastX = e.touches[0].clientX;
+      if (VIZ.tab==='3d') render3D();
+    } else if (e.touches.length===2) {
+      const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      R3D.zoom = Math.max(0.1, Math.min(20, R3D.zoom * d / pinchDist)); updateZoomBtn();
+      pinchDist = d;
+      if (VIZ.tab==='3d') render3D();
+    }
+  }, { passive: false });
+  cv.addEventListener('touchend', () => { dragging=false; });
+})();
+
+// ── VIZ CONTROLS ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.viz-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.viz-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); VIZ.tab = btn.dataset.tab;
+    el('vizPanel2d').style.display = VIZ.tab==='2d' ? '' : 'none';
+    el('vizPanel3d').style.display = VIZ.tab==='3d' ? '' : 'none';
+    el('vizPanelPhoto').style.display = VIZ.tab==='photo' ? '' : 'none';
+    renderActive();
+  });
+});
+document.querySelectorAll('.viz-color-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.viz-color-dot').forEach(d=>d.classList.remove('active'));
+    dot.classList.add('active'); VIZ.color = dot.dataset.color;
+    PS.photoPatCache = null; renderActive();
+  });
+});
+el('vizPavingType').addEventListener('change', e => { VIZ.pavingType=e.target.value; PS.photoPatCache=null; renderActive(); updateQFCost(); });
+el('vizPattern').addEventListener('change', e => { VIZ.pattern=e.target.value; PS.photoPatCache=null; renderActive(); });
+el('vizAreaSize').addEventListener('change', e => {
+  const v = e.target.value;
+  if (v !== 'custom') {
+    const [w,h] = v.split('x').map(Number);
+    el('vizCustW').value = w; el('vizCustH').value = h;
+    VIZ.area = {w,h}; updateQFCost(); renderActive();
+  }
+});
+function readCustomArea() {
+  const w = parseFloat(el('vizCustW').value)||5, h = parseFloat(el('vizCustH').value)||3;
+  VIZ.area = {w, h};
+  const preset = ['3x2','5x3','6x4','8x5','10x6'].find(s => {
+    const [sw,sh] = s.split('x').map(Number); return sw===w && sh===h;
+  });
+  el('vizAreaSize').value = preset || 'custom';
+  updateQFCost(); renderActive();
+}
+el('vizCustW').addEventListener('input', readCustomArea);
+el('vizCustH').addEventListener('input', readCustomArea);
+
+// ── 2D POLYGON DRAWING ────────────────────────────────────────────────────────
+el('canvas2d').addEventListener('click', e => {
+  if (!VIZ.polyDrawing) return;
+  const cv=el('canvas2d'), rect=cv.getBoundingClientRect();
+  const sx=(e.clientX-rect.left)*cv.width/rect.width, sy=(e.clientY-rect.top)*cv.height/rect.height;
+  const {ox,oy,aW,aH,aw,ah}=getViz2DLayout(cv);
+  const wx=(sx-ox)/aW*aw, wy=(sy-oy)/aH*ah;
+  // Click on first point → close
+  if (VIZ.polyDraft.length>=3) {
+    const fp=VIZ.polyDraft[0], fps={x:ox+fp.x/aw*aW,y:oy+fp.y/ah*aH};
+    if (Math.hypot(sx-fps.x,sy-fps.y)<14) { closePolyDraft(); return; }
+  }
+  VIZ.polyDraft.push({x:wx,y:wy});
+  renderActive();
+});
+el('canvas2d').addEventListener('dblclick', e => {
+  if (!VIZ.polyDrawing || VIZ.polyDraft.length<3) return;
+  // Remove the last point (it was also added by the preceding click)
+  VIZ.polyDraft.pop();
+  closePolyDraft();
+});
+
+function vizDownload() {
+  const cv = VIZ.tab==='3d' ? c3d() : c2d();
+  if (!cv) return;
+  const a = document.createElement('a'); a.download = 'terkoves_tervem.png'; a.href = cv.toDataURL(); a.click();
+}
+function vizFullscreen() {
+  const el2 = VIZ.tab==='3d' ? el('vizPanel3d') : el('vizPanel2d');
+  if (el2 && el2.requestFullscreen) el2.requestFullscreen();
+}
+
+// ── PHOTO SYSTEM ──────────────────────────────────────────────────────────────
+const POLY_COLORS = ['#00C8FF','#FF6B35','#A855F7','#FACC15','#10B981'];
+const PS = {
+  img:null, polygons:[], activeIdx:0, drawing:false, pxPerM:null,
+  opacity:0.72, workItems:{}, photoPatCache:null, cameraAngle:90, cameraLabel:'', envScaleHint:null,
+  dragState:null, _dragMoved:false
+};
+
+// (Photo analysis DB – same as main page)
+const WORK_DB = {
+  paving_demo:    {label:'Régi burkolat bontása',    unit:'m²',  priceMin:1800,priceMax:3200},
+  concrete_break: {label:'Beton bontás',             unit:'m²',  priceMin:4500,priceMax:7000},
+  concrete_trans: {label:'Beton szállítás',          unit:'m³',  priceMin:20000,priceMax:35000},
+  grass_remove:   {label:'Gyepeltávolítás',          unit:'m²',  priceMin:600,priceMax:1200},
+  excavation:     {label:'Gépi földkiemelés',        unit:'m³',  priceMin:3500,priceMax:6000},
+  compaction_sub: {label:'Altömörítés',              unit:'m²',  priceMin:500,priceMax:900},
+  gravel_base:    {label:'Zúzottkő alap terítés',   unit:'m²',  priceMin:900,priceMax:1600},
+  geotextile:     {label:'Geotextília fektetés',     unit:'m²',  priceMin:380,priceMax:620},
+  sand_bed:       {label:'Homokágy készítés',        unit:'m²',  priceMin:600,priceMax:1000},
+  paving_lay:     {label:'Térkő lerakás',            unit:'m²',  priceMin:4500,priceMax:7500},
+  grouting:       {label:'Fugázás',                  unit:'m²',  priceMin:550,priceMax:900},
+};
+const MAT_DB = {
+  paving:  {label:'Meglévő burkolat',  color:'#A0A0A0',bg:'#F3F4F6',icon:'fa-road',      works:['paving_demo']},
+  concrete:{label:'Beton felület',     color:'#8090A0',bg:'#EFF2F4',icon:'fa-square',    works:['concrete_break','concrete_trans']},
+  grass:   {label:'Fű / gyepfelület', color:'#22A651',bg:'#E6F7EE',icon:'fa-seedling',  works:['grass_remove','excavation','compaction_sub']},
+  soil:    {label:'Talaj / föld',      color:'#92400E',bg:'#FEF3C7',icon:'fa-mountain', works:['excavation','compaction_sub']},
+  mixed:   {label:'Vegyes burkolat',  color:'#F97316',bg:'#FFF7ED',icon:'fa-shuffle',   works:['paving_demo','concrete_break','concrete_trans']},
+};
+const BASE_WORKS = ['gravel_base','geotextile','sand_bed','paving_lay','grouting'];
+
+function getPhotoCanvas(){return el('photoCanvas');}
+function sideLengthPx(pts,i){const a=pts[i],b=pts[(i+1)%pts.length];return Math.hypot(b.x-a.x,b.y-a.y);}
+function shoelaceArea(pts){let s=0;for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;s+=pts[i].x*pts[j].y-pts[j].x*pts[i].y;}return Math.abs(s)/2;}
+function ptInPoly(px,py,pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i].x,yi=pts[i].y,xj=pts[j].x,yj=pts[j].y;if((yi>py)!==(yj>py)&&px<(xj-xi)*(py-yi)/(yj-yi)+xi)inside=!inside;}return inside;}
+
+function applyCalibration(){
+  const poly=PS.polygons[PS.activeIdx];
+  if(!poly||!poly.closed)return;
+  const sideIdx=parseInt(el('calibSideSelect').value)||0;
+  const realM=parseFloat(el('calibLength').value)||1;
+  const px=sideLengthPx(poly.points,sideIdx);
+  PS.pxPerM=px/realM; poly.pxPerM=PS.pxPerM; updateMeasurements();
+}
+function getEffectivePxPerM(){
+  if(PS.pxPerM)return PS.pxPerM;
+  const cv=getPhotoCanvas(); if(!cv)return 50;
+  return cv.width/10;
+}
+function updateMeasurements(){
+  const poly=PS.polygons[PS.activeIdx]; if(!poly||!poly.closed)return;
+  const ppm=getEffectivePxPerM(), pts=poly.points;
+  poly.sides=pts.map((p,i)=>({idx:i,px:sideLengthPx(pts,i),m:sideLengthPx(pts,i)/ppm}));
+  poly.areaM2=shoelaceArea(pts)/(ppm*ppm);
+  renderMeasurementPanel(); recalcCost();
+}
+function renderMeasurementPanel(){
+  const poly=PS.polygons[PS.activeIdx]; if(!poly||!poly.sides)return;
+  const grid=el('paSidesGrid'); if(!grid)return;
+  el('calibSideSelect').innerHTML=poly.sides.map((s,i)=>`<option value="${i}">${i+1}. oldal (${s.m.toFixed(1)}m)</option>`).join('');
+  grid.innerHTML=poly.sides.map((s,i)=>`<div class="pa-side-item"><span>${i+1}. oldal</span><input type="number" value="${s.m.toFixed(1)}" min=".1" max="500" step=".1" onchange="overrideSide(${i},this.value)"><span style="font-size:.75rem">m</span></div>`).join('');
+  el('paAreaCalc').textContent=poly.areaM2?poly.areaM2.toFixed(2)+' m²':'–';
+  el('paPerimBox').style.display='';
+  el('paPerimeter').textContent=(poly.sides.reduce((s,si)=>s+si.m,0)).toFixed(1)+' m';
+  el('photoAnalysisPanels').style.display='';
+}
+function overrideSide(idx,val){
+  const poly=PS.polygons[PS.activeIdx]; if(!poly)return;
+  const newM=parseFloat(val); if(!newM||newM<=0)return;
+  const ppm=getEffectivePxPerM(), oldPx=poly.sides[idx].px, newPx=newM*ppm, scale=newPx/oldPx;
+  const a=poly.points[idx],b=poly.points[(idx+1)%poly.points.length];
+  const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  poly.points[idx]={x:mx+(a.x-mx)*scale,y:my+(a.y-my)*scale};
+  poly.points[(idx+1)%poly.points.length]={x:mx+(b.x-mx)*scale,y:my+(b.y-my)*scale};
+  PS.photoPatCache=null; updateMeasurements(); renderPhoto();
+}
+function recalcCost(){
+  const poly=PS.polygons[PS.activeIdx]; if(!poly)return;
+  const areaEl=el('paAreaOverride'); const area=areaEl&&areaEl.value?parseFloat(areaEl.value):poly.areaM2||0;
+  if(!area)return;
+  const allWorks=[...new Set([...Object.values(PS.workItems).filter(w=>w.enabled).map(w=>w.id),...BASE_WORKS])];
+  let minSum=0,maxSum=0;
+  const rows=el('paCostRows'); if(!rows)return;
+  const cats={};
+  // Material cost first
+  const matMin=Math.round((PRICING.material[VIZ.pavingType||'standard'].min)*area);
+  const matMax=Math.round((PRICING.material[VIZ.pavingType||'standard'].max)*area);
+  minSum+=matMin; maxSum+=matMax;
+  const tLabel={standard:'Standard térkő',premium:'Prémium térkő',large_slab:'Lapkő (60×40)',cobble:'Kockakő (10×10)'}[VIZ.pavingType||'standard'];
+  (cats['Anyagköltség']=cats['Anyagköltség']||[]).push(
+    `<div class="pa-cost-row"><span>${tLabel} anyag</span><span>${(matMin/1000).toFixed(0)}–${(matMax/1000).toFixed(0)} ezer Ft</span></div>`);
+  allWorks.forEach(id=>{
+    const w=WORK_DB[id]; if(!w)return;
+    const qty=PS.workItems[id]?.qty||area;
+    const mn=w.priceMin*qty, mx=w.priceMax*qty;
+    minSum+=mn; maxSum+=mx;
+    const cat=BASE_WORKS.includes(id)?'Munkadíj':'Előkészítés';
+    (cats[cat]=cats[cat]||[]).push(
+      `<div class="pa-cost-row"><span>${w.label}</span><span>${(mn/1000).toFixed(0)}–${(mx/1000).toFixed(0)} ezer Ft</span></div>`);
+  });
+  const catStyle='font-size:.7rem;font-weight:700;text-transform:uppercase;opacity:.7;margin:8px 0 2px;padding-top:6px;border-top:1px solid rgba(255,255,255,.15)';
+  rows.innerHTML=Object.entries(cats).map(([c,items])=>`<div style="${catStyle}">${c}</div>`+items.join('')).join('');
+  const tot=el('paCostTotal'); if(tot)tot.innerHTML=`<span>Becsült összesen</span><strong>${(minSum/1000).toFixed(0)}–${(maxSum/1000).toFixed(0)} ezer Ft</strong>`;
+}
+
+function runAnalysis(){
+  const poly=PS.polygons[PS.activeIdx]; if(!poly||!poly.closed)return;
+  const cv=getPhotoCanvas(); const ctx=cv.getContext('2d');
+  const pts=poly.points;
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const bx=Math.max(0,Math.floor(Math.min(...xs))),by=Math.max(0,Math.floor(Math.min(...ys)));
+  const bx2=Math.min(cv.width,Math.ceil(Math.max(...xs))),by2=Math.min(cv.height,Math.ceil(Math.max(...ys)));
+  const data=ctx.getImageData(bx,by,bx2-bx,by2-by).data;
+  let rTot=0,gTot=0,bTot=0,cnt=0;
+  for(let y=by;y<by2;y+=3) for(let x=bx;x<bx2;x+=3){
+    if(!ptInPoly(x,y,pts))continue;
+    const i=((y-by)*(bx2-bx)+(x-bx))*4;
+    rTot+=data[i];gTot+=data[i+1];bTot+=data[i+2];cnt++;
+  }
+  if(!cnt)return;
+  const r=rTot/cnt,g=gTot/cnt,b=bTot/cnt,br=(r+g+b)/3,sat=Math.max(r,g,b)-Math.min(r,g,b);
+  let detMat='soil';
+  if(g>r*1.15&&g>b*1.1)detMat='grass';
+  else if(br>140&&sat<35)detMat='concrete';
+  else if(br>80&&sat>25&&sat<80)detMat='paving';
+  else if(br<80&&sat<30)detMat='concrete';
+  const mat=MAT_DB[detMat];
+  const works=[...mat.works,...BASE_WORKS];
+  PS.workItems={};
+  works.forEach(id=>{ PS.workItems[id]={id,enabled:true,qty:poly.areaM2||10}; });
+  const det=el('paDetectionResult'); if(!det)return;
+  det.innerHTML=`<div class="pa-mat-chip" style="border-color:${mat.color};background:${mat.bg};color:${mat.color}"><i class="fa-solid ${mat.icon}"></i>${mat.label}</div>`;
+  const wl=el('paWorkList'); if(!wl)return;
+  wl.innerHTML=mat.works.map(id=>{const w=WORK_DB[id];return w?`<div class="pa-work-item active"><input type="checkbox" checked onchange="toggleWork('${id}',this.checked)"><span>${w.label}</span><div class="pa-work-qty"><input type="number" value="${(poly.areaM2||10).toFixed(1)}" min=".1" max="9999" step=".1" onchange="setWorkQty('${id}',this.value)">${w.unit}</div></div>`:''}).join('');
+  const bl2=el('paBaseWorkList'); if(!bl2)return;
+  bl2.innerHTML=BASE_WORKS.map(id=>{const w=WORK_DB[id];return w?`<div class="pa-work-item active"><input type="checkbox" checked onchange="toggleWork('${id}',this.checked)"><span>${w.label}</span><div class="pa-work-qty"><input type="number" value="${(poly.areaM2||10).toFixed(1)}" min=".1" max="9999" step=".1" onchange="setWorkQty('${id}',this.value)">${w.unit}</div></div>`:''}).join('');
+  el('btnAddPoly').style.display='';
+  recalcCost(); renderPhoto();
+}
+function toggleWork(id,checked){if(PS.workItems[id])PS.workItems[id].enabled=checked;recalcCost();}
+function setWorkQty(id,val){if(PS.workItems[id])PS.workItems[id].qty=parseFloat(val)||0;recalcCost();}
+
+function detectCameraAngle(imgEl){
+  const W=96,H=72,tc=document.createElement('canvas');tc.width=W;tc.height=H;
+  const tx=tc.getContext('2d');tx.drawImage(imgEl,0,0,W,H);const d=tx.getImageData(0,0,W,H).data;
+  let skyRows=0;
+  for(let y=0;y<H;y++){let sk=0;for(let x=0;x<W;x++){const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2],br=(r+g+b)/3;if((b>r*0.86&&b>g*0.76&&br>80)||(br>195&&Math.max(r,g,b)-Math.min(r,g,b)<28))sk++;}if(sk/W>0.38)skyRows++;else break;}
+  let topBr=0,botBr=0;
+  for(let y=0;y<18;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;topBr+=(d[i]+d[i+1]+d[i+2])/3;}
+  for(let y=H-18;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;botBr+=(d[i]+d[i+1]+d[i+2])/3;}
+  topBr/=18*W;botBr/=18*W;
+  const sf=skyRows/H;let angle,label;
+  if(sf<0.03&&topBr-botBr<18){angle=88;label='Felülnézet (drón/légi)';}
+  else if(sf<0.06){angle=78;label='Magas szög (~78°)';}
+  else if(sf<0.15){angle=65;label='Közepes-magas szög (~65°)';}
+  else if(sf<0.28){angle=48;label='Közepes szög (~48°)';}
+  else if(sf<0.44){angle=32;label='Alacsony szög (~32°)';}
+  else{angle=18;label='Oldalnézet (~18°)';}
+  return{angle,label};
+}
+function detectEnvScale(imgEl,angle){
+  const W=120,H=90,tc=document.createElement('canvas');tc.width=W;tc.height=H;
+  const tx=tc.getContext('2d');tx.drawImage(imgEl,0,0,W,H);const d=tx.getImageData(0,0,W,H).data;
+  const gm=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++){const r=d[i*4],g=d[i*4+1],b=d[i*4+2];if(g>r*1.12&&g>b*1.08&&g>60)gm[i]=1;}
+  const visited=new Uint8Array(W*H),blobs=[];
+  for(let i=0;i<W*H;i++){
+    if(!gm[i]||visited[i])continue;
+    const queue=[i];visited[i]=1;let minX=W,maxX=0,minY=H,maxY=0,cnt=0;
+    while(queue.length){const c=queue.pop();cnt++;const cx=c%W,cy=Math.floor(c/W);if(cx<minX)minX=cx;if(cx>maxX)maxX=cx;if(cy<minY)minY=cy;if(cy>maxY)maxY=cy;[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const nx=cx+dx,ny=cy+dy,ni=ny*W+nx;if(nx>=0&&nx<W&&ny>=0&&ny<H&&gm[ni]&&!visited[ni]){visited[ni]=1;queue.push(ni);}});}
+    blobs.push({cnt,w:maxX-minX+1,h:maxY-minY+1});
+  }
+  const tc2=blobs.filter(b=>b.cnt>50&&b.w>8&&b.h>6),hints=[];
+  if(tc2.length>=1){const avg=tc2.reduce((s,b)=>s+b.w,0)/tc2.length;const est=avg/4*(W/120);if(est>5&&est<200)hints.push({pxPerM:est,source:`${tc2.length} fa alapján (~4m)`});}
+  if(angle>=82)hints.push({pxPerM:null,source:'Légi felvétel: ellenőrizze a méretarányt'});
+  return hints;
+}
+function showCameraAngleBadge(){
+  const badge=el('cameraAngleBadge');if(!badge)return;
+  const a=PS.cameraAngle,col=a>=80?'#337AB7':a>=55?'#22A651':'#F97316';
+  badge.innerHTML=`<i class="fa-solid fa-camera" style="color:${col}"></i>&nbsp;<strong>Kamera szög:</strong>&nbsp;${PS.cameraLabel}&nbsp;<span style="opacity:.65;font-size:.8em">(${a}°)</span>${a<85?' &nbsp;<span style="color:#F97316;font-size:.82em">4 sarkos jelöléssel perspektivikus vetítés</span>':''}`;
+  badge.style.display='flex';
+  const hintEl=el('envScaleHints');
+  if(hintEl&&PS.envScaleHint&&PS.envScaleHint.length){hintEl.innerHTML=PS.envScaleHint.map(h=>`<span class="env-hint-item"><i class="fa-solid fa-tree"></i>${h.source}${h.pxPerM?` <button class="btn-link" onclick="applyEnvScale(${h.pxPerM.toFixed(1)})">alkalmaz</button>`:''}</span>`).join('');hintEl.style.display='flex';}
+  else if(hintEl)hintEl.style.display='none';
+}
+function applyEnvScale(pxPerM){const cv=getPhotoCanvas();PS.pxPerM=pxPerM*(cv.width/PS.img.naturalWidth);PS.photoPatCache=null;updateMeasurements();renderPhoto();}
+
+function fillPerspQuad(ctx,pts,ppm,type,pattern,pal){
+  if(pts.length!==4)return false;
+  const byY=[...pts].sort((a,b)=>a.y-b.y);
+  const[tl,tr]=[byY[0],byY[1]].sort((a,b)=>a.x-b.x);
+  const[bl,br]=[byY[2],byY[3]].sort((a,b)=>a.x-b.x);
+  // Projective homography: unit-square (u,v) → quad
+  // (0,0)→bl  (1,0)→br  (1,1)→tr  (0,1)→tl
+  const dx1=br.x-tr.x, dy1=br.y-tr.y;
+  const dx2=tl.x-tr.x, dy2=tl.y-tr.y;
+  const sx=bl.x-br.x+tr.x-tl.x, sy=bl.y-br.y+tr.y-tl.y;
+  const det=dx1*dy2-dx2*dy1;
+  const Hg=(sx*dy2-dx2*sy)/det, Hh=(dx1*sy-sx*dy1)/det;
+  const Ha=br.x-bl.x+Hg*br.x, Hb=tl.x-bl.x+Hh*tl.x;
+  const Hd=br.y-bl.y+Hg*br.y, He=tl.y-bl.y+Hh*tl.y;
+  function qmap(u,v){const w=Hg*u+Hh*v+1;return{x:(Ha*u+Hb*v+bl.x)/w,y:(Hd*u+He*v+bl.y)/w};}
+  const[bl_mm,bs_mm]=BRICK_DIM[type]||[200,100];
+  const nearW=Math.hypot(br.x-bl.x,br.y-bl.y);
+  const depthLen=Math.max(Math.hypot(tl.x-bl.x,tl.y-bl.y),Math.hypot(tr.x-br.x,tr.y-br.y));
+  const nCols=Math.max(2,Math.round(nearW/(bl_mm*ppm/1000)));
+  const nRows=Math.max(2,Math.round(depthLen/(bs_mm*ppm/1000)));
+  ctx.save();ctx.beginPath();[bl,br,tr,tl].forEach((pt,i)=>i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y));ctx.closePath();ctx.clip();
+  ctx.fillStyle=darkenHex(pal[3],12);ctx.fill();
+  for(let row=0;row<nRows;row++){
+    const v0=row/nRows,v1=(row+1)/nRows;
+    const off=(pattern==='bond'&&row%2===1)?0.5/nCols:0;
+    for(let col=-1;col<=nCols;col++){
+      const u0=col/nCols-off,u1=(col+1)/nCols-off;if(u1<0||u0>1)continue;
+      let base=pal[0];
+      if(pattern==='herringbone')base=(row+col)%2?lightenHex(pal[0],13):pal[0];
+      if(pattern==='basket')base=(row+col)%2?lightenHex(pal[0],9):pal[0];
+      if(pattern==='diagonal')base=(row+col)%2?lightenHex(pal[0],7):pal[0];
+      const vari=(Math.sin(col*127+row*311)*0.5+0.5-0.5)*14;
+      const c00=qmap(u0,v0),c10=qmap(u1,v0),c11=qmap(u1,v1),c01=qmap(u0,v1);
+      ctx.beginPath();ctx.moveTo(c00.x,c00.y);ctx.lineTo(c10.x,c10.y);ctx.lineTo(c11.x,c11.y);ctx.lineTo(c01.x,c01.y);ctx.closePath();
+      ctx.fillStyle=lightenHex(base,vari);ctx.fill();ctx.strokeStyle=darkenHex(pal[3],16);ctx.lineWidth=0.9;ctx.stroke();
+    }
+  }
+  ctx.restore();return true;
+}
+function buildPhotoPattern(){
+  const cv=getPhotoCanvas(),ctx=cv.getContext('2d');
+  const[bl,bs]=BRICK_DIM[VIZ.pavingType];
+  const ppm=getEffectivePxPerM(),scale=ppm/1000;
+  const bw=bl*scale,bh=bs*scale;
+  const pal=PAL[VIZ.color]||PAL.gray;
+  const offsc=document.createElement('canvas');
+  offsc.width=Math.max(4,bw*2+2);offsc.height=Math.max(4,bh*2+2);
+  const oc=offsc.getContext('2d');
+  oc.fillStyle=pal[3];oc.fillRect(0,0,offsc.width,offsc.height);
+  const draw={bond:drawBond,straight:drawStraight,herringbone:drawHerringbone,basket:drawBasket,diagonal:drawDiagonal};
+  (draw[VIZ.pattern]||drawBond)(oc,offsc.width,offsc.height,bw,bh,pal);
+  return ctx.createPattern(offsc,'repeat');
+}
+function renderPhoto(){
+  if(!PS.img)return;
+  const cv=getPhotoCanvas(),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(PS.img,0,0,cv.width,cv.height);
+  PS.polygons.forEach((poly,pi)=>{
+    if(!poly.points.length)return;
+    const pts=poly.points,col=POLY_COLORS[pi%POLY_COLORS.length];
+    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    if(poly.closed)ctx.closePath();
+    if(poly.closed&&pts.length>2){
+      ctx.save();ctx.globalAlpha=PS.opacity;
+      const usePersp=pts.length===4&&PS.cameraAngle<85;
+      if(usePersp){fillPerspQuad(ctx,pts,getEffectivePxPerM(),VIZ.pavingType,VIZ.pattern,PAL[VIZ.color]||PAL.gray);}
+      else{if(!PS.photoPatCache)PS.photoPatCache=buildPhotoPattern();ctx.fillStyle=PS.photoPatCache;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(q=>ctx.lineTo(q.x,q.y));ctx.closePath();ctx.fill();}
+      ctx.restore();
+      // NO blue overlay – tile pattern is visible directly
+    }
+    // Polygon outline: subtle white dash for closed, cyan for drawing
+    if (poly.closed) {
+      ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle='rgba(0,200,255,0.85)'; ctx.lineWidth=2.5; ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if(poly.closed&&poly.sides&&PS.pxPerM){
+      ctx.font='bold 11px Nunito,sans-serif';ctx.textAlign='center';
+      poly.sides.forEach((s,i)=>{const a=pts[i],b=pts[(i+1)%pts.length];const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;ctx.fillStyle='rgba(0,0,0,.55)';if(ctx.roundRect){ctx.beginPath();ctx.roundRect(mx-22,my-10,44,18,4);ctx.fill();}ctx.fillStyle='#fff';ctx.fillText(s.m.toFixed(1)+'m',mx,my+4);});
+    }
+    // Vertex handles – larger when closed (draggable)
+    pts.forEach((p,i)=>{
+      const r=poly.closed?9:6;
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.fillStyle=poly.closed?'rgba(255,255,255,.85)':((i===0&&pts.length>2&&!poly.closed)?'#22A651':col);
+      ctx.fill();ctx.strokeStyle=poly.closed?col:'#fff';ctx.lineWidth=2;ctx.stroke();
+      if(poly.closed){ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();}
+    });
+  });
+  const active=PS.polygons[PS.activeIdx];
+  if(PS.drawing&&active&&active.points.length){
+    ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,cv.height-30,cv.width,30);
+    ctx.fillStyle='#fff';ctx.font='12px Nunito,sans-serif';ctx.textAlign='center';
+    ctx.fillText(active.points.length>2?'Kattintson az 1. pontra a lezáráshoz':'Kattintson a sarkok megjelöléshez',cv.width/2,cv.height-10);
+  }
+}
+function renderPhotoOverlay(){PS.photoPatCache=null;renderPhoto();}
+
+// ── PHOTO UPLOAD + EVENTS ─────────────────────────────────────────────────────
+el('photoFileInput').addEventListener('change', e => {
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      PS.img=img;PS.polygons=[];PS.activeIdx=0;PS.pxPerM=null;PS.photoPatCache=null;PS.workItems={};
+      const ai=detectCameraAngle(img);PS.cameraAngle=ai.angle;PS.cameraLabel=ai.label;
+      PS.envScaleHint=detectEnvScale(img,ai.angle);showCameraAngleBadge();
+      el('photoEmpty').style.display='none';el('photoCanvasWrap').style.display='';
+      el('photoAnalysisPanels').style.display='none';
+      const cv=getPhotoCanvas();
+      const maxW=Math.min(900,cv.parentElement.clientWidth||900);
+      cv.width=Math.round(img.naturalWidth*Math.min(1,maxW/img.naturalWidth));
+      cv.height=Math.round(img.naturalHeight*(cv.width/img.naturalWidth));
+      renderPhoto();
+    };img.src=ev.target.result;
+  };reader.readAsDataURL(file);
+});
+
+function startNewPoly(){
+  const idx=PS.polygons.length;
+  PS.polygons.push({points:[],closed:false,name:`Terület ${idx+1}`,color:POLY_COLORS[idx%POLY_COLORS.length],sides:[],areaM2:0});
+  PS.activeIdx=idx;PS.drawing=true;PS.photoPatCache=null;
+  el('btnDrawPoly').innerHTML='<i class="fa-solid fa-circle-dot"></i> Jelölés folyamatban...';
+  el('btnDrawPoly').style.cssText='background:#e63946;color:#fff';
+}
+el('btnDrawPoly').addEventListener('click',()=>{PS.workItems={};startNewPoly();});
+el('btnAddPoly').addEventListener('click',startNewPoly);
+el('btnUndoPoint').addEventListener('click',()=>{
+  const poly=PS.polygons[PS.activeIdx];if(!poly)return;
+  if(poly.closed){poly.closed=false;PS.drawing=true;}
+  poly.points.pop();PS.photoPatCache=null;renderPhoto();
+  if(!poly.points.length)resetDrawBtn();
+});
+el('btnClearPoly').addEventListener('click',()=>{
+  PS.polygons=[];PS.drawing=false;PS.photoPatCache=null;PS.workItems={};
+  el('photoAnalysisPanels').style.display='none';el('btnAddPoly').style.display='none';
+  resetDrawBtn();renderPhoto();
+});
+function resetDrawBtn(){el('btnDrawPoly').innerHTML='<i class="fa-solid fa-draw-polygon"></i> Terület jelölése';el('btnDrawPoly').style.cssText='';}
+el('btnCalibrate').addEventListener('click',applyCalibration);
+el('overlayOpacity').addEventListener('input',function(){PS.opacity=this.value/100;el('opacityVal').textContent=this.value+'%';PS.photoPatCache=null;renderPhoto();});
+el('paAreaOverride').addEventListener('input',recalcCost);
+el('btnReanalyze').addEventListener('click',()=>{PS.photoPatCache=null;runAnalysis();});
+['vizPavingType','vizPattern'].forEach(id=>el(id).addEventListener('change',()=>{PS.photoPatCache=null;if(PS.img)renderPhotoOverlay();}));
+el('btnAddWorkItem')&&el('btnAddWorkItem').addEventListener('click',()=>{
+  const id=prompt('Munkafolyamat kódja (pl. excavation):'); if(!id||!WORK_DB[id])return;
+  PS.workItems[id]={id,enabled:true,qty:PS.polygons[PS.activeIdx]?.areaM2||10};recalcCost();
+});
+
+const photoCv=el('photoCanvas');
+
+// ── PHOTO DRAG (vertex + whole-poly move) ─────────────────────────────────────
+function photoCvCoords(e){
+  const rect=photoCv.getBoundingClientRect();
+  return {x:(e.clientX-rect.left)*photoCv.width/rect.width, y:(e.clientY-rect.top)*photoCv.height/rect.height};
+}
+photoCv.addEventListener('mousedown',e=>{
+  const poly=PS.polygons[PS.activeIdx];
+  if(!poly||!poly.closed)return;
+  const {x,y}=photoCvCoords(e);
+  // Check vertex hit
+  for(let i=0;i<poly.points.length;i++){
+    if(Math.hypot(x-poly.points[i].x,y-poly.points[i].y)<14){
+      PS.dragState={type:'vertex',idx:i};PS._dragMoved=false;
+      photoCv.style.cursor='grabbing'; e.preventDefault(); return;
+    }
+  }
+  // Check inside polygon → move whole
+  if(ptInPoly(x,y,poly.points)){
+    PS.dragState={type:'poly',ox:x,oy:y,pts:poly.points.map(p=>({...p}))};PS._dragMoved=false;
+    photoCv.style.cursor='move'; e.preventDefault();
+  }
+});
+window.addEventListener('mousemove',e=>{
+  if(!PS.dragState)return;
+  const poly=PS.polygons[PS.activeIdx]; if(!poly)return;
+  const {x,y}=photoCvCoords(e);
+  PS._dragMoved=true;
+  if(PS.dragState.type==='vertex'){
+    poly.points[PS.dragState.idx]={x,y};
+    PS.photoPatCache=null; updateMeasurements(); renderPhoto();
+  } else {
+    const dx=x-PS.dragState.ox, dy=y-PS.dragState.oy;
+    PS.dragState.pts.forEach((pt,i)=>{poly.points[i]={x:pt.x+dx,y:pt.y+dy};});
+    PS.photoPatCache=null; renderPhoto();
+  }
+});
+window.addEventListener('mouseup',()=>{
+  if(PS.dragState){PS.dragState=null; photoCv.style.cursor=PS.drawing?'crosshair':'';}
+});
+
+photoCv.addEventListener('click',e=>{
+  if(PS._dragMoved){PS._dragMoved=false;return;} // skip click after drag
+  const poly=PS.polygons[PS.activeIdx];if(!PS.drawing||!poly)return;
+  const {x:cx,y:cy}=photoCvCoords(e);
+  if(poly.points.length>2){
+    const fp=poly.points[0];
+    if(Math.hypot(cx-fp.x,cy-fp.y)<20){
+      poly.closed=true;PS.drawing=false;resetDrawBtn();
+      updateMeasurements();runAnalysis();renderPhoto();return;
+    }
+  }
+  poly.points.push({x:cx,y:cy});PS.photoPatCache=null;renderPhoto();
+});
+photoCv.addEventListener('dblclick',e=>{
+  const poly=PS.polygons[PS.activeIdx];if(!PS.drawing||!poly||poly.points.length<3)return;
+  poly.closed=true;PS.drawing=false;resetDrawBtn();
+  updateMeasurements();runAnalysis();renderPhoto();
+});
+
+// ── SYNC VIZ → FORM ──────────────────────────────────────────────────────────
+function syncVizToForm(){
+  updateQFCost();
+}
+
+// ── ZOOM CONTROLS ─────────────────────────────────────────────────────────────
+function vizZoomIn() {
+  if (VIZ.tab==='3d') R3D.zoom = Math.min(20, R3D.zoom * 1.3);
+  else VIZ.zoom = Math.min(20, VIZ.zoom * 1.3);
+  updateZoomBtn(); renderActive();
+}
+function vizZoomOut() {
+  if (VIZ.tab==='3d') R3D.zoom = Math.max(0.1, R3D.zoom / 1.3);
+  else VIZ.zoom = Math.max(0.1, VIZ.zoom / 1.3);
+  updateZoomBtn(); renderActive();
+}
+function vizZoomReset() {
+  VIZ.zoom = 1; R3D.zoom = 1;
+  updateZoomBtn(); renderActive();
+}
+function updateZoomBtn() {
+  const btn = el('btnZoomLevel'); if (!btn) return;
+  const z = VIZ.tab==='3d' ? R3D.zoom : VIZ.zoom;
+  btn.textContent = Math.round(z * 100) + '%';
+}
+el('canvas2d').addEventListener('wheel', e => {
+  e.preventDefault();
+  VIZ.zoom = Math.max(0.15, Math.min(10, VIZ.zoom * (e.deltaY < 0 ? 1.13 : 1/1.13)));
+  updateZoomBtn();
+  if (VIZ.tab==='2d') render2D();
+}, { passive: false });
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+el('vestWorkType').addEventListener('change', e => {
+  QF.workType = e.target.value;
+  document.querySelectorAll('.qf-work-btn').forEach(b => b.classList.toggle('active', b.dataset.value===QF.workType));
+  updateQFCost();
+});
+updateQFCost();
+setTimeout(render2D, 80);
+</script>
+</body>
+</html>

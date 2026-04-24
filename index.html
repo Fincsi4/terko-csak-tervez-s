@@ -1122,7 +1122,7 @@ document.querySelectorAll('.viz-tab').forEach(btn => {
     el('vizPanel2d').style.display = VIZ.tab==='2d' ? '' : 'none';
     el('vizPanel3d').style.display = VIZ.tab==='3d' ? '' : 'none';
     el('vizPanelPhoto').style.display = VIZ.tab==='photo' ? '' : 'none';
-    if (VIZ.tab==='photo' && PS.img && !findPlanPoly()) createPlanOverlay();
+    if (VIZ.tab==='photo' && PS.img && !PS.plan && !PS.polygons.some(p=>p&&p.closed)) createPlanOverlay();
     renderActive();
   });
 });
@@ -1194,7 +1194,8 @@ const POLY_COLORS = ['#00C8FF','#FF6B35','#A855F7','#FACC15','#10B981'];
 const PS = {
   img:null, polygons:[], activeIdx:0, drawing:false, pxPerM:null,
   opacity:0.72, workItems:{}, photoPatCache:null, cameraAngle:90, cameraLabel:'', envScaleHint:null,
-  dragState:null, _dragMoved:false
+  dragState:null, _dragMoved:false,
+  plan:null // {shapePts, shapeBox, corners} – plan overlay synced from VIZ
 };
 
 // (Photo analysis DB – same as main page)
@@ -1434,6 +1435,31 @@ function renderPhoto(){
   if(!PS.img)return;
   const cv=getPhotoCanvas(),ctx=cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(PS.img,0,0,cv.width,cv.height);
+  // Plan overlay – projected shape from VIZ, perspective-filled via its bounding quad
+  if (PS.plan && !PS.polygons.some(p=>p&&p.closed)) {
+    const projPts = _planProjected();
+    if (projPts.length >= 3) {
+      ctx.save(); ctx.globalAlpha = PS.opacity;
+      ctx.beginPath(); ctx.moveTo(projPts[0].x, projPts[0].y);
+      projPts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+      ctx.closePath(); ctx.clip();
+      fillPerspQuad(ctx, PS.plan.corners, getEffectivePxPerM(), VIZ.pavingType, VIZ.pattern, PAL[VIZ.color]||PAL.gray);
+      ctx.restore();
+      // Projected shape outline
+      ctx.strokeStyle='rgba(255,255,255,.78)'; ctx.setLineDash([6,4]); ctx.lineWidth=1.8;
+      ctx.beginPath(); ctx.moveTo(projPts[0].x, projPts[0].y);
+      projPts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.stroke();
+      ctx.setLineDash([]);
+      // 4 bounding-quad handles (user drags these to transform the plan)
+      const col = POLY_COLORS[0];
+      PS.plan.corners.forEach(c=>{
+        ctx.beginPath(); ctx.arc(c.x, c.y, 9, 0, Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fill();
+        ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.fillStyle=col; ctx.beginPath(); ctx.arc(c.x, c.y, 4, 0, Math.PI*2); ctx.fill();
+      });
+    }
+  }
   PS.polygons.forEach((poly,pi)=>{
     if(!poly.points.length)return;
     const pts=poly.points,col=POLY_COLORS[pi%POLY_COLORS.length];
@@ -1441,13 +1467,10 @@ function renderPhoto(){
     if(poly.closed)ctx.closePath();
     if(poly.closed&&pts.length>2){
       ctx.save();ctx.globalAlpha=PS.opacity;
-      // For the plan overlay: always use perspective fill (user is actively tilting it).
-      // For user-drawn polygons: use perspective only if 4-point & not aerial.
-      const usePersp=pts.length===4&&(poly.isPlan||PS.cameraAngle<85);
+      const usePersp=pts.length===4&&PS.cameraAngle<85;
       if(usePersp){fillPerspQuad(ctx,pts,getEffectivePxPerM(),VIZ.pavingType,VIZ.pattern,PAL[VIZ.color]||PAL.gray);}
       else{if(!PS.photoPatCache)PS.photoPatCache=buildPhotoPattern();ctx.fillStyle=PS.photoPatCache;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(q=>ctx.lineTo(q.x,q.y));ctx.closePath();ctx.fill();}
       ctx.restore();
-      // NO blue overlay – tile pattern is visible directly
     }
     // Polygon outline: subtle white dash for closed, cyan for drawing
     if (poly.closed) {
@@ -1477,104 +1500,118 @@ function renderPhoto(){
 }
 function renderPhotoOverlay(){PS.photoPatCache=null;renderPhoto();}
 
-// ── PLAN OVERLAY (syncs VIZ.area / VIZ.polygon to photo as draggable 4-corner quad) ──
-function findPlanPolyIdx() { return PS.polygons.findIndex(p => p && p.isPlan); }
-function findPlanPoly() { const i=findPlanPolyIdx(); return i>=0?PS.polygons[i]:null; }
+// ── PLAN OVERLAY ──────────────────────────────────────────────────────────────
+// PS.plan holds the source shape (in metres, from VIZ) + a 4-corner bounding quad
+// (in photo pixels) that the user transforms. The actual shape is projected
+// through a homography defined by that quad, so an N-gon from 2D stays an N-gon
+// on the photo while still being tiltable perspectively.
+//   PS.plan = { shapePts: [{x,y},...], shapeBox: {minX,minY,w,h}, corners: [tl,tr,br,bl] }
 
 function createPlanOverlay() {
   if (!PS.img) return;
   const cv = getPhotoCanvas();
   const W = cv.width, H = cv.height;
-  // Derive plan aspect (in metres) from VIZ
-  let aw, ah;
+
+  // Source shape in metres: the VIZ polygon if present, else the rectangle from VIZ.area
+  let shapePts;
   if (VIZ.polygon && VIZ.polygon.length >= 3) {
-    const xs=VIZ.polygon.map(p=>p.x), ys=VIZ.polygon.map(p=>p.y);
-    aw = Math.max(...xs) - Math.min(...xs);
-    ah = Math.max(...ys) - Math.min(...ys);
-    if (aw<0.1) aw=VIZ.area.w; if (ah<0.1) ah=VIZ.area.h;
+    shapePts = VIZ.polygon.map(p => ({x:p.x, y:p.y}));
   } else {
-    aw = VIZ.area.w; ah = VIZ.area.h;
+    const aw=VIZ.area.w, ah=VIZ.area.h;
+    shapePts = [{x:0,y:0},{x:aw,y:0},{x:aw,y:ah},{x:0,y:ah}];
   }
-  // Fit quad into ~55% of photo (wider by default – looks more natural on ground)
+  const xs=shapePts.map(p=>p.x), ys=shapePts.map(p=>p.y);
+  const minX=Math.min(...xs), minY=Math.min(...ys);
+  let bw=Math.max(...xs)-minX, bh=Math.max(...ys)-minY;
+  if (bw<0.1) bw=VIZ.area.w; if (bh<0.1) bh=VIZ.area.h;
+  const shapeBox = {minX, minY, w:bw, h:bh};
+
+  // Fit bounding quad into ~55% of photo
   const maxSize = Math.min(W*0.75, H*0.55);
-  const scale = Math.min(maxSize / aw, maxSize / ah);
-  const pw = aw * scale, ph = ah * scale;
+  const scale = Math.min(maxSize/bw, maxSize/bh);
+  const pw = bw*scale, ph = bh*scale;
   const cx = W/2, cy = H*0.62;
-  // Slight default perspective (top narrower than bottom) for ground-plane hint
   const persp = 0.18;
   const tl = {x: cx - pw/2 + pw*persp*0.5, y: cy - ph/2};
   const tr = {x: cx + pw/2 - pw*persp*0.5, y: cy - ph/2};
-  const br = {x: cx + pw/2, y: cy + ph/2};
-  const bl = {x: cx - pw/2, y: cy + ph/2};
-  const plan = {
-    points:[tl,tr,br,bl], closed:true, isPlan:true,
-    name:'Térkő terv', color:POLY_COLORS[0], sides:[], areaM2: aw*ah
-  };
-  const idx = findPlanPolyIdx();
-  if (idx>=0) PS.polygons[idx] = plan; else PS.polygons.unshift(plan);
-  PS.activeIdx = findPlanPolyIdx();
+  const br = {x: cx + pw/2,                 y: cy + ph/2};
+  const bl = {x: cx - pw/2,                 y: cy + ph/2};
+
+  PS.plan = { shapePts, shapeBox, corners:[tl,tr,br,bl] };
+  PS.pxPerM = Math.hypot(br.x-bl.x, br.y-bl.y) / bw;
   PS.photoPatCache = null;
-  // Lock the photo scale to the plan's bottom edge (= VIZ.area.w metres) so tile sizes stay correct
-  PS.pxPerM = Math.hypot(br.x-bl.x, br.y-bl.y) / aw;
-  if (typeof updateMeasurements === 'function') { try { updateMeasurements(); } catch(_){} }
   el('planTransformBar') && (el('planTransformBar').style.display='flex');
   renderPhoto();
 }
 
 function resetPlanOverlay() { createPlanOverlay(); }
 
-function syncPlanToPhoto() {
-  if (!PS.img) return;
-  if (VIZ.tab !== 'photo') return;
-  // If no plan overlay yet OR plan exists but aspect ratio doesn't match new VIZ – rebuild
-  const plan = findPlanPoly();
-  if (!plan) { createPlanOverlay(); return; }
-  // Keep existing transformation; just update the colour/pattern cache
-  PS.photoPatCache = null;
-  renderPhoto();
+function _planQmap(corners) {
+  const [tl,tr,br,bl] = corners;
+  const dx1=br.x-tr.x, dy1=br.y-tr.y;
+  const dx2=tl.x-tr.x, dy2=tl.y-tr.y;
+  const sx=bl.x-br.x+tr.x-tl.x, sy=bl.y-br.y+tr.y-tl.y;
+  const det=dx1*dy2-dx2*dy1 || 1e-9;
+  const Hg=(sx*dy2-dx2*sy)/det, Hh=(dx1*sy-sx*dy1)/det;
+  const Ha=br.x-bl.x+Hg*br.x, Hb=tl.x-bl.x+Hh*tl.x;
+  const Hd=br.y-bl.y+Hg*br.y, He=tl.y-bl.y+Hh*tl.y;
+  // (0,0)→bl, (1,0)→br, (1,1)→tr, (0,1)→tl
+  return (u,v) => {
+    const w=Hg*u+Hh*v+1;
+    return {x:(Ha*u+Hb*v+bl.x)/w, y:(Hd*u+He*v+bl.y)/w};
+  };
+}
+function _planProjected() {
+  if (!PS.plan) return [];
+  const {shapePts, shapeBox, corners} = PS.plan;
+  const qmap = _planQmap(corners);
+  return shapePts.map(p => {
+    const u = (p.x - shapeBox.minX) / shapeBox.w;
+    // v = 0 at bottom (bl/br), 1 at top (tl/tr). Source Y grows downward → flip.
+    const v = 1 - (p.y - shapeBox.minY) / shapeBox.h;
+    return qmap(u, v);
+  });
 }
 
 function _planCentroid(pts){return{cx:pts.reduce((s,p)=>s+p.x,0)/pts.length, cy:pts.reduce((s,p)=>s+p.y,0)/pts.length};}
 
 function planRotate(deg) {
-  const plan = findPlanPoly(); if (!plan) return;
+  if (!PS.plan) return;
   const r = deg*Math.PI/180, c=Math.cos(r), s=Math.sin(r);
-  const {cx,cy}=_planCentroid(plan.points);
-  plan.points = plan.points.map(p=>({x:cx+(p.x-cx)*c-(p.y-cy)*s, y:cy+(p.x-cx)*s+(p.y-cy)*c}));
+  const {cx,cy}=_planCentroid(PS.plan.corners);
+  PS.plan.corners = PS.plan.corners.map(p=>({x:cx+(p.x-cx)*c-(p.y-cy)*s, y:cy+(p.x-cx)*s+(p.y-cy)*c}));
   PS.photoPatCache=null; renderPhoto();
 }
 function planScale(factor) {
-  const plan = findPlanPoly(); if (!plan) return;
-  const {cx,cy}=_planCentroid(plan.points);
-  plan.points = plan.points.map(p=>({x:cx+(p.x-cx)*factor, y:cy+(p.y-cy)*factor}));
+  if (!PS.plan) return;
+  const {cx,cy}=_planCentroid(PS.plan.corners);
+  PS.plan.corners = PS.plan.corners.map(p=>({x:cx+(p.x-cx)*factor, y:cy+(p.y-cy)*factor}));
   PS.photoPatCache=null; renderPhoto();
 }
 function planMove(dx, dy) {
-  const plan = findPlanPoly(); if (!plan) return;
-  plan.points = plan.points.map(p=>({x:p.x+dx, y:p.y+dy}));
+  if (!PS.plan) return;
+  PS.plan.corners = PS.plan.corners.map(p=>({x:p.x+dx, y:p.y+dy}));
   PS.photoPatCache=null; renderPhoto();
 }
-// planTiltV: +amount = tilt away (top narrower, looking down) | -amount = tilt toward viewer (top wider)
 function planTiltV(amount) {
-  const plan = findPlanPoly(); if (!plan) return;
-  const pts = plan.points;
+  if (!PS.plan) return;
+  const pts = PS.plan.corners;
   const {cx}=_planCentroid(pts);
-  if (amount>0) { // shrink top
+  if (amount>0) {
     pts[0] = {x: pts[0].x + (cx - pts[0].x)*amount, y: pts[0].y};
     pts[1] = {x: pts[1].x + (cx - pts[1].x)*amount, y: pts[1].y};
-  } else { // shrink bottom
+  } else {
     const a=-amount;
     pts[3] = {x: pts[3].x + (cx - pts[3].x)*a, y: pts[3].y};
     pts[2] = {x: pts[2].x + (cx - pts[2].x)*a, y: pts[2].y};
   }
   PS.photoPatCache=null; renderPhoto();
 }
-// planTiltH: +amount = shrink right side | -amount = shrink left side
 function planTiltH(amount) {
-  const plan = findPlanPoly(); if (!plan) return;
-  const pts = plan.points;
+  if (!PS.plan) return;
+  const pts = PS.plan.corners;
   const {cy}=_planCentroid(pts);
-  if (amount>0) { // shrink right
+  if (amount>0) {
     pts[1] = {x: pts[1].x, y: pts[1].y + (cy - pts[1].y)*amount};
     pts[2] = {x: pts[2].x, y: pts[2].y + (cy - pts[2].y)*amount};
   } else {
@@ -1607,8 +1644,8 @@ el('photoFileInput').addEventListener('change', e => {
 });
 
 function startNewPoly(){
-  // Remove existing plan overlay – user is switching to custom-draw mode
-  const pIdx=findPlanPolyIdx(); if(pIdx>=0) PS.polygons.splice(pIdx,1);
+  // Hide plan overlay – user is switching to custom-draw mode
+  PS.plan = null;
   el('planTransformBar') && (el('planTransformBar').style.display='none');
   const idx=PS.polygons.length;
   PS.polygons.push({points:[],closed:false,name:`Terület ${idx+1}`,color:POLY_COLORS[idx%POLY_COLORS.length],sides:[],areaM2:0});
@@ -1650,17 +1687,31 @@ function photoCvCoords(e){
   return {x:(e.clientX-rect.left)*photoCv.width/rect.width, y:(e.clientY-rect.top)*photoCv.height/rect.height};
 }
 photoCv.addEventListener('mousedown',e=>{
+  const {x,y}=photoCvCoords(e);
+  // 1) Plan overlay drag (takes priority when visible)
+  if (PS.plan && !PS.polygons.some(p=>p&&p.closed)) {
+    for (let i=0;i<PS.plan.corners.length;i++) {
+      const c=PS.plan.corners[i];
+      if (Math.hypot(x-c.x, y-c.y)<14) {
+        PS.dragState={type:'planCorner', idx:i}; PS._dragMoved=false;
+        photoCv.style.cursor='grabbing'; e.preventDefault(); return;
+      }
+    }
+    const projPts = _planProjected();
+    if (projPts.length>=3 && ptInPoly(x,y,projPts)) {
+      PS.dragState={type:'planMove', ox:x, oy:y, corners:PS.plan.corners.map(p=>({...p}))};
+      PS._dragMoved=false; photoCv.style.cursor='move'; e.preventDefault(); return;
+    }
+  }
+  // 2) User-drawn polygon drag (existing behaviour)
   const poly=PS.polygons[PS.activeIdx];
   if(!poly||!poly.closed)return;
-  const {x,y}=photoCvCoords(e);
-  // Check vertex hit
   for(let i=0;i<poly.points.length;i++){
     if(Math.hypot(x-poly.points[i].x,y-poly.points[i].y)<14){
       PS.dragState={type:'vertex',idx:i};PS._dragMoved=false;
       photoCv.style.cursor='grabbing'; e.preventDefault(); return;
     }
   }
-  // Check inside polygon → move whole
   if(ptInPoly(x,y,poly.points)){
     PS.dragState={type:'poly',ox:x,oy:y,pts:poly.points.map(p=>({...p}))};PS._dragMoved=false;
     photoCv.style.cursor='move'; e.preventDefault();
@@ -1668,13 +1719,22 @@ photoCv.addEventListener('mousedown',e=>{
 });
 window.addEventListener('mousemove',e=>{
   if(!PS.dragState)return;
-  const poly=PS.polygons[PS.activeIdx]; if(!poly)return;
   const {x,y}=photoCvCoords(e);
   PS._dragMoved=true;
+  if (PS.dragState.type==='planCorner') {
+    PS.plan.corners[PS.dragState.idx] = {x,y};
+    PS.photoPatCache=null; renderPhoto(); return;
+  }
+  if (PS.dragState.type==='planMove') {
+    const dx=x-PS.dragState.ox, dy=y-PS.dragState.oy;
+    PS.plan.corners = PS.dragState.corners.map(p=>({x:p.x+dx, y:p.y+dy}));
+    PS.photoPatCache=null; renderPhoto(); return;
+  }
+  const poly=PS.polygons[PS.activeIdx]; if(!poly)return;
   if(PS.dragState.type==='vertex'){
     poly.points[PS.dragState.idx]={x,y};
     PS.photoPatCache=null; updateMeasurements(); renderPhoto();
-  } else {
+  } else if (PS.dragState.type==='poly') {
     const dx=x-PS.dragState.ox, dy=y-PS.dragState.oy;
     PS.dragState.pts.forEach((pt,i)=>{poly.points[i]={x:pt.x+dx,y:pt.y+dy};});
     PS.photoPatCache=null; renderPhoto();

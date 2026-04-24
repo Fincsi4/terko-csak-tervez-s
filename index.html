@@ -63,6 +63,9 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
 .viz-color-dot.active{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-bg)}
 .dot-gray{background:#a8a8a8}.dot-anthracite{background:#484848}.dot-brown{background:#9a6b44}
 .dot-cream{background:#d8c89a}.dot-terra{background:#c17040}.dot-mixed{background:linear-gradient(135deg,#a8a8a8 50%,#9a6b44 50%)}
+.dot-sandstone{background:#d2b48c}.dot-red{background:#b73a2a}.dot-yellow{background:#dcc46a}
+.dot-charcoal{background:#2a2a2a}.dot-olive{background:#7a7c44}.dot-granite{background:radial-gradient(circle at 30% 35%,#8a8a8a 1.5px,transparent 2px) #6d6d6d}
+.dot-sand-mix{background:linear-gradient(135deg,#d2b48c 50%,#9a6b44 50%)}
 .viz-canvas-area{position:relative;background:#E4DDD4;min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .viz-canvas-area canvas{display:block;max-width:100%}
 .viz-canvas-area--3d{background:#E4DDD4}
@@ -225,10 +228,22 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
         <div class="viz-ctrl">
           <label>Anyag / térkő</label>
           <select id="vizPavingType">
-            <option value="standard">Standard térkő (20×10)</option>
-            <option value="premium">Prémium térkő (20×10)</option>
-            <option value="large_slab">Nagy lapkő (60×40)</option>
-            <option value="cobble">Kockakő (10×10)</option>
+            <optgroup label="Klasszikus">
+              <option value="standard">Standard térkő (20×10)</option>
+              <option value="premium">Prémium térkő (20×10)</option>
+              <option value="brick_slim">Keskeny térkő (20×5)</option>
+            </optgroup>
+            <optgroup label="Lapok">
+              <option value="square_med">Négyzet lap (15×15)</option>
+              <option value="terrace_tile">Terasz lap (40×40)</option>
+              <option value="large_slab">Nagy lapkő (60×40)</option>
+              <option value="giant_slab">Óriás lap (80×60)</option>
+            </optgroup>
+            <optgroup label="Kockakő / natúr">
+              <option value="cobble">Kockakő (10×10)</option>
+              <option value="granite_cube">Gránit kocka (10×10)</option>
+              <option value="natural_stone">Natúr kő (25×15)</option>
+            </optgroup>
           </select>
         </div>
         <div class="viz-ctrl">
@@ -246,10 +261,17 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
           <div class="viz-color-row">
             <div class="viz-color-dot dot-gray active" data-color="gray" title="Szürke"></div>
             <div class="viz-color-dot dot-anthracite" data-color="anthracite" title="Antracit"></div>
+            <div class="viz-color-dot dot-charcoal" data-color="charcoal" title="Szénszürke"></div>
+            <div class="viz-color-dot dot-granite" data-color="granite" title="Gránit szürke"></div>
             <div class="viz-color-dot dot-brown" data-color="brown" title="Barna"></div>
             <div class="viz-color-dot dot-cream" data-color="cream" title="Krém"></div>
+            <div class="viz-color-dot dot-sandstone" data-color="sandstone" title="Homokkő"></div>
+            <div class="viz-color-dot dot-yellow" data-color="yellow" title="Sárga"></div>
             <div class="viz-color-dot dot-terra" data-color="terra" title="Terra"></div>
-            <div class="viz-color-dot dot-mixed" data-color="mixed" title="Vegyes"></div>
+            <div class="viz-color-dot dot-red" data-color="red" title="Tégla piros"></div>
+            <div class="viz-color-dot dot-olive" data-color="olive" title="Olíva"></div>
+            <div class="viz-color-dot dot-mixed" data-color="mixed" title="Vegyes szürke-barna"></div>
+            <div class="viz-color-dot dot-sand-mix" data-color="sand_mix" title="Vegyes homok-barna"></div>
           </div>
         </div>
         <div class="viz-ctrl">
@@ -532,7 +554,18 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const PRICING = {
-  material:   { standard:{min:2800,max:4200}, premium:{min:4500,max:7000}, large_slab:{min:6500,max:11000}, cobble:{min:3200,max:5500} },
+  material:   {
+    standard:    {min:2800,max:4200},
+    premium:     {min:4500,max:7000},
+    brick_slim:  {min:3200,max:4800},
+    square_med:  {min:3600,max:5400},
+    terrace_tile:{min:5500,max:9000},
+    large_slab:  {min:6500,max:11000},
+    giant_slab:  {min:8500,max:14000},
+    cobble:      {min:3200,max:5500},
+    granite_cube:{min:5200,max:9000},
+    natural_stone:{min:5800,max:10500}
+  },
   foundation: { pedestrian:{min:2500,max:3500}, car:{min:3500,max:5000}, heavy:{min:6500,max:9500}, unknown:{min:3000,max:6000} },
   labor:      { pedestrian:{min:4500,max:6500}, car:{min:6500,max:8500}, heavy:{min:8500,max:12000}, unknown:{min:5000,max:9000} }
 };
@@ -546,14 +579,26 @@ const BASE_MAT_PRICING = {
 const VIZ = { tab:'2d', color:'gray', pattern:'bond', pavingType:'standard', area:{w:5,h:3}, zoom:1,
   polygon:null, polyDraft:[], polyDrawing:false };
 const PAL = {
-  gray:      ['#a8a5a0','#c8c5c0','#787570','#d0ccc8'],
-  anthracite:['#484848','#606060','#282828','#555050'],
-  brown:     ['#9a6b44','#c49060','#6b3c20','#c0a080'],
-  cream:     ['#d8c89a','#f0e4be','#b0a070','#e0d4b0'],
-  terra:     ['#c17040','#e09060','#883010','#d0a080'],
-  mixed:     ['#9a9080','#c0b8a8','#706860','#c0b8a8']
+  gray:       ['#a8a5a0','#c8c5c0','#787570','#d0ccc8'],
+  anthracite: ['#484848','#606060','#282828','#555050'],
+  charcoal:   ['#2f2f2e','#414140','#1a1a1a','#3b3b3a'],
+  granite:    ['#6f6a66','#8a857f','#4a4642','#807a74'],
+  brown:      ['#9a6b44','#c49060','#6b3c20','#c0a080'],
+  cream:      ['#d8c89a','#f0e4be','#b0a070','#e0d4b0'],
+  sandstone:  ['#c9a879','#e4c59d','#9c7f54','#d8bf96'],
+  yellow:     ['#d4bc68','#e8d38a','#a88f40','#d8c48e'],
+  terra:      ['#c17040','#e09060','#883010','#d0a080'],
+  red:        ['#a9392b','#c4594a','#751f15','#b45848'],
+  olive:      ['#7a7c44','#9b9a62','#52542a','#8f8c62'],
+  mixed:      ['#9a9080','#c0b8a8','#706860','#c0b8a8'],
+  sand_mix:   ['#b79068','#d2b08a','#8a6b48','#c7ab89']
 };
-const BRICK_DIM = { standard:[200,100], premium:[200,100], large_slab:[600,400], cobble:[100,100] };
+const BRICK_DIM = {
+  standard:[200,100], premium:[200,100], brick_slim:[200,50],
+  square_med:[150,150], terrace_tile:[400,400],
+  large_slab:[600,400], giant_slab:[800,600],
+  cobble:[100,100], granite_cube:[100,100], natural_stone:[250,150]
+};
 
 // ── QUICK FORM STATE ──────────────────────────────────────────────────────────
 const QF = { workType:'', name:'', phone:'', email:'', zip:'', city:'', when:'asap', notes:'' };
@@ -610,7 +655,12 @@ function updateEstPanel() {
   const baseMat = BASE_MAT_PRICING[lt];
   const found = PRICING.foundation[lt];
   const lab   = PRICING.labor[lt];
-  const typeLabel = {standard:'Standard (20×10)',premium:'Prémium (20×10)',large_slab:'Lapkő (60×40)',cobble:'Kockakő (10×10)'}[VIZ.pavingType]||'Térkő';
+  const typeLabel = {
+    standard:'Standard (20×10)', premium:'Prémium (20×10)', brick_slim:'Keskeny (20×5)',
+    square_med:'Négyzet (15×15)', terrace_tile:'Terasz lap (40×40)',
+    large_slab:'Nagy lap (60×40)', giant_slab:'Óriás lap (80×60)',
+    cobble:'Kockakő (10×10)', granite_cube:'Gránit kocka (10×10)', natural_stone:'Natúr kő'
+  }[VIZ.pavingType]||'Térkő';
   function fmtR(min,max,a){
     const mn=Math.round(min*a/1000)*1000, mx=Math.round(max*a/1000)*1000;
     return `<span style="font-size:.75rem;color:var(--text-3)">${(a).toFixed(1)} m² × ${min}–${max} Ft</span><br>${(mn/1000).toFixed(0)}–${(mx/1000).toFixed(0)} ezer Ft`;
@@ -690,76 +740,93 @@ function resetQForm() {
 // (2D renderer, draw functions, pattern helpers, 3D renderer – self-contained)
 
 function drawBond(ctx, W, H, bw, bh, pal) {
+  const c0=pal[0], c1=lightenHex(pal[0],10), jc=darkenHex(pal[3],22);
   for (let row=0,y=0; y<H+bh; y+=bh,row++) {
     const xoff = row%2===1 ? bw/2 : 0;
-    for (let x=-xoff; x<W+bw; x+=bw) {
+    for (let x=-xoff,col=0; x<W+bw; x+=bw,col++) {
       const cx=Math.max(x,0),cw=Math.min(x+bw,W)-cx-1,cy=y,ch=Math.min(y+bh,H)-cy-1;
       if(cw<1||ch<1)continue;
-      ctx.fillStyle=pal[0]; ctx.fillRect(cx,cy,cw,ch);
-      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(cx+.5,cy+.5,cw-1,ch-1);
+      // Per-tile variation + row alternation
+      const vari=((Math.sin(col*127.1+row*311.7)*43758.5453)%1+1)%1; // 0..1
+      const base = (row%3===0) ? c1 : c0;
+      ctx.fillStyle = lightenHex(base, Math.round((vari-0.5)*14));
+      ctx.fillRect(cx,cy,cw,ch);
+      ctx.strokeStyle=jc; ctx.lineWidth=1.2; ctx.strokeRect(cx+.5,cy+.5,cw-1,ch-1);
     }
   }
 }
 function drawStraight(ctx,W,H,bw,bh,pal) {
-  for(let y=0;y<H;y+=bh) for(let x=0;x<W;x+=bw) {
+  const c0=pal[0], c1=lightenHex(pal[0],8), jc=darkenHex(pal[3],22);
+  for(let y=0,row=0;y<H;y+=bh,row++) for(let x=0,col=0;x<W;x+=bw,col++) {
     const cw=Math.min(bw,W-x)-1,ch=Math.min(bh,H-y)-1;
-    ctx.fillStyle=pal[0]; ctx.fillRect(x,y,cw,ch);
-    ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,cw-1,ch-1);
+    const vari=((Math.sin(col*73+row*131)*43758.5453)%1+1)%1;
+    const base = ((row+col)%2===0) ? c0 : c1;
+    ctx.fillStyle = lightenHex(base, Math.round((vari-0.5)*12));
+    ctx.fillRect(x,y,cw,ch);
+    ctx.strokeStyle=jc; ctx.lineWidth=1.2; ctx.strokeRect(x+.5,y+.5,cw-1,ch-1);
   }
 }
 function drawHerringbone(ctx,W,H,bw,bh,pal) {
-  const c0=pal[0], c1=lightenHex(pal[0],12);
-  // Alternating horizontal bands (bh tall, bw-wide bricks) and vertical bands (bw tall, bh-wide bricks)
-  // Each band pair flips horizontal offset by bh to create the zigzag
+  const c0=pal[0], c1=lightenHex(pal[0],18), jc=darkenHex(pal[3],25);
   let y=-bw, flip=0;
   while(y<H+bw) {
-    // H-band: horizontal bricks (bw × bh)
+    // H-band: horizontal bricks (bw × bh) – darker base colour
     const hx0=flip?bh:0;
-    for(let x=-bw+hx0;x<W+bw;x+=bw) {
-      const ci=(Math.floor((x-hx0+2*bw)/bw)+flip)%2;
-      ctx.fillStyle=ci?c1:c0; ctx.fillRect(x,y,bw-1,bh-1);
-      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+    for(let x=-bw+hx0,col=0;x<W+bw;x+=bw,col++) {
+      const vari=((Math.sin(col*73+y*131)*43758.5453)%1+1)%1;
+      ctx.fillStyle=lightenHex(c0, Math.round((vari-0.5)*14));
+      ctx.fillRect(x,y,bw-1,bh-1);
+      ctx.strokeStyle=jc; ctx.lineWidth=1.2; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
     }
     y+=bh;
-    // V-band: vertical bricks (bh × bw)
+    // V-band: vertical bricks (bh × bw) – lighter base colour (visual distinction)
     const vx0=flip?0:bh;
-    for(let x=-bh+vx0;x<W+bh;x+=bh) {
-      const ci=(Math.floor((x-vx0+2*bh)/bh)+flip)%2;
-      ctx.fillStyle=ci?c1:c0; ctx.fillRect(x,y,bh-1,bw-1);
-      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bh-2,bw-2);
+    for(let x=-bh+vx0,col=0;x<W+bh;x+=bh,col++) {
+      const vari=((Math.sin(col*127+y*311)*43758.5453)%1+1)%1;
+      ctx.fillStyle=lightenHex(c1, Math.round((vari-0.5)*12));
+      ctx.fillRect(x,y,bh-1,bw-1);
+      ctx.strokeStyle=jc; ctx.lineWidth=1.2; ctx.strokeRect(x+.5,y+.5,bh-2,bw-2);
     }
     y+=bw; flip^=1;
   }
 }
 function drawBasket(ctx,W,H,bw,bh,pal) {
-  const c0=pal[0], c1=lightenHex(pal[0],10);
-  const cs=bw; // cell size = bw (= 2*bh for standard 2:1 brick)
+  const c0=pal[0], c1=lightenHex(pal[0],18), jc=darkenHex(pal[3],25);
+  const cs=bw;
   for(let row=-1;row*cs<H+cs;row++) {
     for(let col=-1;col*cs<W+cs;col++) {
       const x=col*cs, y=row*cs;
       const ci=((col+row)%2+2)%2;
-      ctx.fillStyle=ci?c1:c0; ctx.strokeStyle=pal[3]; ctx.lineWidth=1;
+      const vari=((Math.sin(col*127+row*311)*43758.5453)%1+1)%1;
+      const base=ci?c1:c0;
+      ctx.fillStyle=lightenHex(base, Math.round((vari-0.5)*12));
+      ctx.strokeStyle=jc; ctx.lineWidth=1.2;
       if(ci===0) {
-        // H-group: 2 horizontal bricks stacked (bw × bh each)
+        // H-group
         ctx.fillRect(x,y,bw-1,bh-1); ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+        ctx.fillStyle=lightenHex(base, Math.round((vari-0.4)*12));
         ctx.fillRect(x,y+bh,bw-1,bh-1); ctx.strokeRect(x+.5,y+bh+.5,bw-2,bh-2);
       } else {
-        // V-group: 2 vertical bricks side by side (bh × bw each)
+        // V-group
         ctx.fillRect(x,y,bh-1,bw-1); ctx.strokeRect(x+.5,y+.5,bh-2,bw-2);
+        ctx.fillStyle=lightenHex(base, Math.round((vari-0.4)*12));
         ctx.fillRect(x+bh,y,bh-1,bw-1); ctx.strokeRect(x+bh+.5,y+.5,bh-2,bw-2);
       }
     }
   }
 }
 function drawDiagonal(ctx,W,H,bw,bh,pal) {
+  const c0=pal[0], c1=lightenHex(pal[0],15), jc=darkenHex(pal[3],25);
   ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(Math.PI/4);
   const sw=W+H;
   for(let row=-Math.ceil(sw/bh),y=row*bh; y<sw; y+=bh,row++) {
     for(let col=-Math.ceil(sw/bw),x=col*bw; x<sw; x+=bw,col++) {
       const ci=((row+col)%2+2)%2;
-      ctx.fillStyle=ci?pal[0]:lightenHex(pal[0],8);
+      const vari=((Math.sin(col*127+row*311)*43758.5453)%1+1)%1;
+      const base=ci?c0:c1;
+      ctx.fillStyle=lightenHex(base, Math.round((vari-0.5)*12));
       ctx.fillRect(x,y,bw-1,bh-1);
-      ctx.strokeStyle=pal[3]; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
+      ctx.strokeStyle=jc; ctx.lineWidth=1.2; ctx.strokeRect(x+.5,y+.5,bw-2,bh-2);
     }
   }
   ctx.restore();
@@ -775,9 +842,61 @@ function ptInPoly(px, py, poly) {
   return inside;
 }
 function polyArea(poly) {
+  const pts = polyTessellate(poly) || poly;
   let a=0;
-  for (let i=0;i<poly.length;i++){const j=(i+1)%poly.length;a+=poly[i].x*poly[j].y-poly[j].x*poly[i].y;}
+  for (let i=0;i<pts.length;i++){const j=(i+1)%pts.length;a+=pts[i].x*pts[j].y-pts[j].x*pts[i].y;}
   return Math.abs(a)/2;
+}
+// Tessellate a polygon with optional `arc` property on each vertex.
+// arc is the perpendicular offset (in world units) of the curve's control point
+// from the straight-edge midpoint. Positive = bulge to the right of p0→p1.
+function polyTessellate(polyIn) {
+  if (!polyIn || polyIn.length<3) return null;
+  const N=polyIn.length, out=[], STEPS=22;
+  for (let i=0;i<N;i++) {
+    const p0=polyIn[i], p1=polyIn[(i+1)%N], arc=p0.arc||0;
+    out.push({x:p0.x, y:p0.y});
+    if (Math.abs(arc)<0.001) continue;
+    const mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+    const dx=p1.x-p0.x, dy=p1.y-p0.y, L=Math.hypot(dx,dy)||1;
+    const nx=-dy/L, ny=dx/L;
+    const cx=mx+nx*arc, cy=my+ny*arc;
+    for (let s=1;s<STEPS;s++) {
+      const t=s/STEPS, u=1-t;
+      out.push({x:u*u*p0.x+2*u*t*cx+t*t*p1.x, y:u*u*p0.y+2*u*t*cy+t*t*p1.y});
+    }
+  }
+  return out;
+}
+window.__polyTessellate = polyTessellate;
+// Draw a polygon path (with arcs) onto a canvas 2D context.
+// worldToScreen (optional): function({x,y}) → screen coords.
+function drawPolyPath(ctx, pts, worldToScreen) {
+  if (!pts || pts.length<2) return;
+  const toS = worldToScreen || (p=>p);
+  const s0=toS(pts[0]); ctx.beginPath(); ctx.moveTo(s0.x, s0.y);
+  for (let i=0;i<pts.length;i++) {
+    const p0=pts[i], p1=pts[(i+1)%pts.length], arc=p0.arc||0;
+    const s1=toS(p1);
+    if (Math.abs(arc)<0.001) { ctx.lineTo(s1.x, s1.y); }
+    else {
+      const mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+      const dx=p1.x-p0.x, dy=p1.y-p0.y, L=Math.hypot(dx,dy)||1;
+      const nx=-dy/L, ny=dx/L;
+      const sC=toS({x:mx+nx*arc, y:my+ny*arc});
+      ctx.quadraticCurveTo(sC.x, sC.y, s1.x, s1.y);
+    }
+  }
+  ctx.closePath();
+}
+// Compute the handle point for editing an edge's arc (at bezier t=0.5)
+function edgeArcHandle(p0, p1) {
+  const arc=p0.arc||0;
+  const mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+  const dx=p1.x-p0.x, dy=p1.y-p0.y, L=Math.hypot(dx,dy)||1;
+  const nx=-dy/L, ny=dx/L;
+  // Bezier mid: for control (mx+nx*arc,my+ny*arc), midpoint = straight-mid + 0.5*arc*n
+  return {x:mx+nx*arc*0.5, y:my+ny*arc*0.5, nx, ny, mx, my, L};
 }
 function getViz2DLayout(cv) {
   const aw=VIZ.area.w, ah=VIZ.area.h, [bl,bs]=BRICK_DIM[VIZ.pavingType];
@@ -834,29 +953,41 @@ function renderViz(cv) {
   const wToS = (wx,wy) => ({x:ox+wx/aw*aW, y:oy+wy/ah*aH});
 
   if (VIZ.polygon && VIZ.polygon.length>=3) {
-    // Fill polygon with tile pattern
+    const toS = p => wToS(p.x, p.y);
+    // Fill polygon (with arcs) with tile pattern
     ctx.save();
-    ctx.translate(ox,oy);
-    ctx.beginPath();
-    VIZ.polygon.forEach((pt,i)=>{const s=wToS(pt.x,pt.y);i===0?ctx.moveTo(s.x-ox,s.y-oy):ctx.lineTo(s.x-ox,s.y-oy);});
-    ctx.closePath(); ctx.clip();
-    (drawFn[VIZ.pattern]||drawBond)(ctx,aW,aH,bw,bh,pal);
+    drawPolyPath(ctx, VIZ.polygon, toS);
+    ctx.clip();
+    // Draw pattern over polygon bounding box (not translated)
+    const xs=VIZ.polygon.map(p=>p.x), ys=VIZ.polygon.map(p=>p.y);
+    const bboxX = wToS(Math.min(...xs), Math.min(...ys));
+    const bboxMax = wToS(Math.max(...xs), Math.max(...ys));
+    ctx.translate(bboxX.x, bboxX.y);
+    (drawFn[VIZ.pattern]||drawBond)(ctx, bboxMax.x-bboxX.x, bboxMax.y-bboxX.y, bw, bh, pal);
     ctx.restore();
-    // Polygon border
+    // Polygon border (with arcs)
     ctx.strokeStyle=darkenHex(pal[3],20); ctx.lineWidth=2.5;
-    ctx.beginPath();
-    VIZ.polygon.forEach((pt,i)=>{const s=wToS(pt.x,pt.y);i===0?ctx.moveTo(s.x,s.y):ctx.lineTo(s.x,s.y);});
-    ctx.closePath(); ctx.stroke();
+    drawPolyPath(ctx, VIZ.polygon, toS); ctx.stroke();
     // Vertex handles
-    VIZ.polygon.forEach(pt=>{const s=wToS(pt.x,pt.y);ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=darkenHex(pal[3],30);ctx.lineWidth=1.5;ctx.stroke();});
-    // Area label at centroid
-    const cx=VIZ.polygon.reduce((a,p)=>a+p.x,0)/VIZ.polygon.length;
-    const cy=VIZ.polygon.reduce((a,p)=>a+p.y,0)/VIZ.polygon.length;
+    VIZ.polygon.forEach(pt=>{const s=wToS(pt.x,pt.y);ctx.beginPath();ctx.arc(s.x,s.y,5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#337AB7';ctx.lineWidth=2;ctx.stroke();});
+    // Edge midpoint handles (drag to bend, double-click to straighten)
+    VIZ.polygon.forEach((p0,i)=>{
+      const p1=VIZ.polygon[(i+1)%VIZ.polygon.length];
+      const h=edgeArcHandle(p0,p1); const sh=wToS(h.x,h.y);
+      ctx.beginPath();ctx.arc(sh.x,sh.y,4.5,0,Math.PI*2);
+      const hasArc=Math.abs(p0.arc||0)>0.001;
+      ctx.fillStyle=hasArc?'#F97316':'rgba(255,255,255,.7)';ctx.fill();
+      ctx.strokeStyle=hasArc?'#d14a00':'#337AB7'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    // Area label at centroid (use tessellated for accurate area)
+    const tess = polyTessellate(VIZ.polygon) || VIZ.polygon;
+    const cx=tess.reduce((a,p)=>a+p.x,0)/tess.length;
+    const cy=tess.reduce((a,p)=>a+p.y,0)/tess.length;
     const sc=wToS(cx,cy);
     const area=polyArea(VIZ.polygon);
-    ctx.fillStyle='rgba(40,28,18,.80)'; ctx.font='bold 13px Nunito,sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(40,28,18,.82)'; ctx.font='bold 13px Nunito,sans-serif'; ctx.textAlign='center';
     ctx.fillText(`${area.toFixed(1)} m²`,sc.x,sc.y+5);
-    el('vizScaleInfo').textContent=`Terület: ${area.toFixed(2)} m²`;
+    el('vizScaleInfo').textContent=`Terület: ${area.toFixed(2)} m²  ·  Élhez húzva: ív`;
   } else {
     // Rectangle
     ctx.save(); ctx.translate(ox,oy); ctx.beginPath(); ctx.rect(0,0,aW,aH); ctx.clip();
@@ -1092,6 +1223,80 @@ function renderActive(){
 
 // 3D INTERACTIVE CONTROLS: handled by OrbitControls in the Three.js module.
 
+// ── 2D POLYGON EDITING (drag vertices, bend edges via midpoint handles) ───────
+(function(){
+  const cv = el('canvas2d');
+  let drag = null; // {type:'vertex'|'arc', idx, ox, oy, baseArc, baseP}
+  function cvCoords(e){
+    const r=cv.getBoundingClientRect();
+    const sx=(e.clientX-r.left)*cv.width/r.width, sy=(e.clientY-r.top)*cv.height/r.height;
+    const {ox,oy,aW,aH,aw,ah}=getViz2DLayout(cv);
+    return {sx, sy, wx:(sx-ox)/aW*aw, wy:(sy-oy)/aH*ah, ox, oy, aW, aH, aw, ah};
+  }
+  cv.addEventListener('mousedown',e=>{
+    if (VIZ.polyDrawing) return;
+    if (!VIZ.polygon || VIZ.polygon.length<3) return;
+    const c=cvCoords(e);
+    const wToS = (wx,wy) => ({x:c.ox+wx/c.aw*c.aW, y:c.oy+wy/c.ah*c.aH});
+    // Vertex hit
+    for (let i=0;i<VIZ.polygon.length;i++) {
+      const p=VIZ.polygon[i], s=wToS(p.x,p.y);
+      if (Math.hypot(c.sx-s.x, c.sy-s.y)<10) {
+        drag={type:'vertex', idx:i}; cv.style.cursor='grabbing';
+        e.preventDefault(); return;
+      }
+    }
+    // Edge arc-handle hit
+    for (let i=0;i<VIZ.polygon.length;i++) {
+      const p0=VIZ.polygon[i], p1=VIZ.polygon[(i+1)%VIZ.polygon.length];
+      const h=edgeArcHandle(p0,p1); const sh=wToS(h.x,h.y);
+      if (Math.hypot(c.sx-sh.x, c.sy-sh.y)<10) {
+        drag={type:'arc', idx:i, baseArc:(p0.arc||0)}; cv.style.cursor='grabbing';
+        e.preventDefault(); return;
+      }
+    }
+  });
+  window.addEventListener('mousemove',e=>{
+    if (!drag) return;
+    const c=cvCoords(e);
+    if (drag.type==='vertex') {
+      VIZ.polygon[drag.idx].x=c.wx;
+      VIZ.polygon[drag.idx].y=c.wy;
+      renderActive(); updateQFCost();
+      if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
+    } else if (drag.type==='arc') {
+      const i=drag.idx;
+      const p0=VIZ.polygon[i], p1=VIZ.polygon[(i+1)%VIZ.polygon.length];
+      const mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+      const dx=p1.x-p0.x, dy=p1.y-p0.y, L=Math.hypot(dx,dy)||1;
+      const nx=-dy/L, ny=dx/L;
+      // Project mouse offset from mid onto perpendicular to get arc amount (doubled because handle is at t=0.5)
+      const mouseDX=c.wx-mx, mouseDY=c.wy-my;
+      const newArc = (mouseDX*nx + mouseDY*ny) * 2;
+      p0.arc = newArc;
+      renderActive(); updateQFCost();
+      if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
+    }
+  });
+  window.addEventListener('mouseup',()=>{ if(drag){ drag=null; cv.style.cursor=''; } });
+  // Double-click on edge handle → straighten it
+  cv.addEventListener('dblclick',e=>{
+    if (VIZ.polyDrawing) return;
+    if (!VIZ.polygon || VIZ.polygon.length<3) return;
+    const c=cvCoords(e);
+    const wToS = (wx,wy) => ({x:c.ox+wx/c.aw*c.aW, y:c.oy+wy/c.ah*c.aH});
+    for (let i=0;i<VIZ.polygon.length;i++) {
+      const p0=VIZ.polygon[i], p1=VIZ.polygon[(i+1)%VIZ.polygon.length];
+      const h=edgeArcHandle(p0,p1); const sh=wToS(h.x,h.y);
+      if (Math.hypot(c.sx-sh.x, c.sy-sh.y)<14 && Math.abs(p0.arc||0)>0.001) {
+        p0.arc=0; renderActive(); updateQFCost();
+        if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
+        e.stopImmediatePropagation(); e.preventDefault(); return;
+      }
+    }
+  }, true);
+})();
+
 // ── VIZ CONTROLS ─────────────────────────────────────────────────────────────
 document.querySelectorAll('.viz-tab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1310,6 +1515,75 @@ function runAnalysis(){
 function toggleWork(id,checked){if(PS.workItems[id])PS.workItems[id].enabled=checked;recalcCost();}
 function setWorkQty(id,val){if(PS.workItems[id])PS.workItems[id].qty=parseFloat(val)||0;recalcCost();}
 
+// Automatic whole-photo analysis: detects a mix of materials + rough slope and
+// pre-populates work items (concrete demolition, earthworks, grass removal, etc.)
+function runPhotoAutoAnalysis(){
+  if(!PS.img)return;
+  const cv=getPhotoCanvas(); if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  let data; try { data=ctx.getImageData(0,0,W,H).data; } catch(_) { return; }
+  // Skip top 12% (sky / far background)
+  const yStart=Math.floor(H*0.12);
+  const cnt={grass:0, concrete:0, paving:0, soil:0};
+  const bands=[[0,0,0],[0,0,0],[0,0,0]]; const bandCnt=[0,0,0];
+  for (let y=yStart; y<H; y+=4) {
+    for (let x=0; x<W; x+=4) {
+      const i=(y*W+x)*4, r=data[i], g=data[i+1], b=data[i+2];
+      const br=(r+g+b)/3, sat=Math.max(r,g,b)-Math.min(r,g,b);
+      if      (g>r*1.08 && g>b*1.02 && sat>25) cnt.grass++;
+      else if (br>145 && sat<30)               cnt.concrete++;
+      else if (br>90 && sat>22 && sat<85)      cnt.paving++;
+      else if (br<90 && sat<30)                cnt.concrete++; // asphalt / dark concrete
+      else                                      cnt.soil++;
+      const bi=Math.min(2, Math.floor((y-yStart)*3/(H-yStart)));
+      bands[bi][0]+=r; bands[bi][1]+=g; bands[bi][2]+=b; bandCnt[bi]++;
+    }
+  }
+  const total=cnt.grass+cnt.concrete+cnt.paving+cnt.soil; if(!total) return;
+  const p={grass:cnt.grass/total, concrete:cnt.concrete/total, paving:cnt.paving/total, soil:cnt.soil/total};
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)bands[i][j]/=Math.max(1,bandCnt[i]);
+  const topBr=(bands[0][0]+bands[0][1]+bands[0][2])/3;
+  const botBr=(bands[2][0]+bands[2][1]+bands[2][2])/3;
+  const hasSlope=Math.abs(topBr-botBr)>32 && (p.soil+p.grass)>0.25;
+  // Estimated target area: from VIZ (the actual paving plan)
+  let areaM2;
+  if (VIZ.polygon && VIZ.polygon.length>=3) areaM2=polyArea(VIZ.polygon);
+  else areaM2=(VIZ.area.w||5)*(VIZ.area.h||3);
+  // Build work items based on detected proportions
+  PS.workItems={};
+  const add=(id,qty)=>{ if(WORK_DB[id]) PS.workItems[id]={id,enabled:true,qty:Math.max(0.5,qty)}; };
+  if (p.paving   > 0.08) add('paving_demo',   areaM2 * p.paving);
+  if (p.concrete > 0.08) { add('concrete_break', areaM2 * p.concrete); add('concrete_trans', areaM2 * p.concrete * 0.15); }
+  if (p.grass    > 0.08) add('grass_remove',  areaM2 * p.grass);
+  if (hasSlope || p.soil > 0.30) add('excavation', Math.max(areaM2 * 0.2, 1.5));
+  add('compaction_sub', areaM2);
+  BASE_WORKS.forEach(id => add(id, areaM2));
+  // Render panels
+  el('photoAnalysisPanels').style.display='';
+  _renderAutoAnalysisPanel(p, hasSlope, areaM2);
+  recalcCost();
+}
+function _renderAutoAnalysisPanel(p, hasSlope, areaM2){
+  const det=el('paDetectionResult'); if(!det)return;
+  const chips=[]; const fmt=v=>`${(v*100).toFixed(0)}%`;
+  if(p.grass   >0.05) chips.push({label:`Fű ${fmt(p.grass)}`,     color:'#22A651', bg:'#E6F7EE', icon:'fa-seedling'});
+  if(p.concrete>0.05) chips.push({label:`Beton ${fmt(p.concrete)}`, color:'#607080', bg:'#EFF2F4', icon:'fa-square'});
+  if(p.paving  >0.05) chips.push({label:`Régi burkolat ${fmt(p.paving)}`, color:'#8A7A66', bg:'#F3F4F6', icon:'fa-road'});
+  if(p.soil    >0.05) chips.push({label:`Talaj/föld ${fmt(p.soil)}`, color:'#92400E', bg:'#FEF3C7', icon:'fa-mountain'});
+  if(hasSlope)        chips.push({label:'Szintkülönbség észlelve', color:'#F97316', bg:'#FFEDD5', icon:'fa-arrow-trend-up'});
+  det.innerHTML = chips.length
+    ? chips.map(c=>`<div class="pa-mat-chip" style="border-color:${c.color};background:${c.bg};color:${c.color}"><i class="fa-solid ${c.icon}"></i>${c.label}</div>`).join('')
+    : '<span style="color:var(--text-3);font-size:.8rem">Nem sikerült anyagot azonosítani</span>';
+  const wl=el('paWorkList'); if(!wl)return;
+  const detected = Object.values(PS.workItems).filter(w=>!BASE_WORKS.includes(w.id));
+  wl.innerHTML = detected.length
+    ? detected.map(w=>{const wd=WORK_DB[w.id];return wd?`<div class="pa-work-item active"><input type="checkbox" checked onchange="toggleWork('${w.id}',this.checked)"><span>${wd.label}</span><div class="pa-work-qty"><input type="number" value="${w.qty.toFixed(1)}" min=".1" max="9999" step=".1" onchange="setWorkQty('${w.id}',this.value)">${wd.unit}</div></div>`:''}).join('')
+    : '<span style="color:var(--text-3);font-size:.8rem">Nincs külön előkészítő munka szükséges</span>';
+  const bl2=el('paBaseWorkList'); if(!bl2)return;
+  bl2.innerHTML=BASE_WORKS.map(id=>{const w=WORK_DB[id],ps=PS.workItems[id];return w?`<div class="pa-work-item active"><input type="checkbox" checked onchange="toggleWork('${id}',this.checked)"><span>${w.label}</span><div class="pa-work-qty"><input type="number" value="${(ps?ps.qty:areaM2).toFixed(1)}" min=".1" max="9999" step=".1" onchange="setWorkQty('${id}',this.value)">${w.unit}</div></div>`:''}).join('');
+}
+
 function detectCameraAngle(imgEl){
   const W=96,H=72,tc=document.createElement('canvas');tc.width=W;tc.height=H;
   const tx=tc.getContext('2d');tx.drawImage(imgEl,0,0,W,H);const d=tx.getImageData(0,0,W,H).data;
@@ -1490,10 +1764,10 @@ function createPlanOverlay() {
   const cv = getPhotoCanvas();
   const W = cv.width, H = cv.height;
 
-  // Source shape in metres: the VIZ polygon if present, else the rectangle from VIZ.area
+  // Source shape in metres: tessellated VIZ polygon if present (supports arcs), else rectangle
   let shapePts;
   if (VIZ.polygon && VIZ.polygon.length >= 3) {
-    shapePts = VIZ.polygon.map(p => ({x:p.x, y:p.y}));
+    shapePts = (polyTessellate(VIZ.polygon) || VIZ.polygon).map(p => ({x:p.x, y:p.y}));
   } else {
     const aw=VIZ.area.w, ah=VIZ.area.h;
     shapePts = [{x:0,y:0},{x:aw,y:0},{x:aw,y:ah},{x:0,y:ah}];
@@ -1617,6 +1891,8 @@ el('photoFileInput').addEventListener('change', e => {
       cv.width=Math.round(img.naturalWidth*Math.min(1,maxW/img.naturalWidth));
       cv.height=Math.round(img.naturalHeight*(cv.width/img.naturalWidth));
       createPlanOverlay();
+      // Automatic whole-photo analysis: detects materials + elevation to pre-populate work items.
+      setTimeout(runPhotoAutoAnalysis, 40);
     };img.src=ev.target.result;
   };reader.readAsDataURL(file);
 });
@@ -1895,29 +2171,37 @@ function buildTiles() {
   disposeGroup(T3.tileGroup);
   disposeGroup(T3.baseGroup);
 
-  const VIZ = window.VIZ, PAL = window.PAL, ptInPoly = window.ptInPoly;
+  const VIZ = window.VIZ, PAL = window.PAL, BRICK_DIM = window.BRICK_DIM, ptInPoly = window.ptInPoly;
   if (!VIZ || !PAL) return;
   const aw = VIZ.area.w, ah = VIZ.area.h;
   const pal = PAL[VIZ.color] || PAL.gray;
   const pat = VIZ.pattern;
 
-  // Tile dims in metres
-  let bw, bh;
-  if (VIZ.pavingType === 'large_slab') { bw=0.60; bh=0.40; }
-  else if (VIZ.pavingType === 'cobble') { bw=0.10; bh=0.10; }
-  else { bw=0.20; bh=0.10; }
+  // Tile dims in metres – taken from BRICK_DIM (mm) for all paving types
+  const dim = (BRICK_DIM && BRICK_DIM[VIZ.pavingType]) || [200,100];
+  let bw = dim[0]/1000, bh = dim[1]/1000;
   let tw=bw, th=bh;
-  while ((aw/tw)*(ah/th) > 800) { tw*=1.5; th*=1.5; }
+  while ((aw/tw)*(ah/th) > 1400) { tw*=1.3; th*=1.3; }
 
   const slabH = 0.05;
-  const poly3d = VIZ.polygon && VIZ.polygon.length>=3 ? VIZ.polygon : null;
+  // Tessellate polygon if it exists (supports curved edges via arc property)
+  const poly3d = (window.__polyTessellate ? window.__polyTessellate(VIZ.polygon) : (VIZ.polygon && VIZ.polygon.length>=3 ? VIZ.polygon : null));
 
-  // Centering offset so the slab is around origin
-  const cx0 = aw/2, cy0 = ah/2;
+  // Centering: use the polygon's bounding box centroid when present, otherwise area
+  let cx0, cy0, scanMinX, scanMaxX, scanMinY, scanMaxY;
+  if (poly3d) {
+    const xs=poly3d.map(p=>p.x), ys=poly3d.map(p=>p.y);
+    scanMinX=Math.min(...xs); scanMaxX=Math.max(...xs);
+    scanMinY=Math.min(...ys); scanMaxY=Math.max(...ys);
+    cx0 = (scanMinX+scanMaxX)/2; cy0 = (scanMinY+scanMaxY)/2;
+  } else {
+    cx0 = aw/2; cy0 = ah/2;
+    scanMinX=0; scanMaxX=aw; scanMinY=0; scanMaxY=ah;
+  }
 
-  // Sand/joint bed under the tiles
-  const jointCol = new THREE.Color(pal[3]).multiplyScalar(0.78);
-  const jointMat = new THREE.MeshStandardMaterial({ color: jointCol, roughness: 0.92 });
+  // Sand/joint bed under the tiles (darker grout – makes patterns more visible)
+  const jointCol = new THREE.Color(pal[3]).multiplyScalar(0.55);
+  const jointMat = new THREE.MeshStandardMaterial({ color: jointCol, roughness: 0.95 });
   let baseShape;
   if (poly3d) {
     baseShape = new THREE.Shape(poly3d.map(p => new THREE.Vector2(p.x - cx0, p.y - cy0)));
@@ -1936,54 +2220,91 @@ function buildTiles() {
   baseMesh.receiveShadow = true;
   T3.baseGroup.add(baseMesh);
 
-  // Collect tile rectangles (same pattern logic as before)
+  // Collect tile rectangles (same pattern logic as before, but over polygon bbox)
   const tiles = [];
-  function addTile(cx, cy, cw, ch) {
-    const cw2 = Math.min(cx+cw, aw) - cx;
-    const ch2 = Math.min(cy+ch, ah) - cy;
+  function addTile(cx, cy, cw, ch, isV) {
+    const cw2 = Math.min(cx+cw, scanMaxX) - cx;
+    const ch2 = Math.min(cy+ch, scanMaxY) - cy;
     if (cw2 < 0.015 || ch2 < 0.015) return;
     if (poly3d && !ptInPoly(cx + cw2/2, cy + ch2/2, poly3d)) return;
-    tiles.push({ cx, cy, cw2, ch2 });
+    tiles.push({ cx, cy, cw2, ch2, isV: !!isV });
   }
+  const spanX = scanMaxX - scanMinX, spanY = scanMaxY - scanMinY;
   if (pat === 'herringbone') {
-    let gy=0, flip=0;
-    while(gy<ah-0.001) {
-      const hH=Math.min(th,ah-gy), hx0=flip?th:0;
-      for(let gx=-hx0;gx<aw+tw-0.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,hH);
-      gy+=hH; if(gy>=ah-0.001) break;
-      const vH=Math.min(tw,ah-gy), vx0=flip?0:th;
-      for(let gx=-vx0;gx<aw+th-0.001;gx+=th) addTile(Math.max(gx,0),gy,th,vH);
+    let gy=scanMinY, flip=0;
+    while(gy<scanMaxY-0.001) {
+      const hH=Math.min(th,scanMaxY-gy), hx0=flip?th:0;
+      for(let gx=scanMinX-hx0;gx<scanMaxX+tw-0.001;gx+=tw) addTile(Math.max(gx,scanMinX),gy,tw,hH,false);
+      gy+=hH; if(gy>=scanMaxY-0.001) break;
+      const vH=Math.min(tw,scanMaxY-gy), vx0=flip?0:th;
+      for(let gx=scanMinX-vx0;gx<scanMaxX+th-0.001;gx+=th) addTile(Math.max(gx,scanMinX),gy,th,vH,true);
       gy+=vH; flip^=1;
     }
   } else if (pat === 'basket') {
     const cs=tw;
-    for(let gy=0;gy<ah-0.001;gy+=cs) for(let gx=0;gx<aw-0.001;gx+=cs) {
-      const isH=((Math.round(gx/cs)+Math.round(gy/cs))%2+2)%2===0;
-      if(isH) { addTile(gx,gy,tw,th); addTile(gx,gy+th,tw,th); }
-      else    { addTile(gx,gy,th,tw); addTile(gx+th,gy,th,tw); }
+    for(let gy=scanMinY;gy<scanMaxY-0.001;gy+=cs) for(let gx=scanMinX;gx<scanMaxX-0.001;gx+=cs) {
+      const isH=((Math.round((gx-scanMinX)/cs)+Math.round((gy-scanMinY)/cs))%2+2)%2===0;
+      if(isH) { addTile(gx,gy,tw,th,false); addTile(gx,gy+th,tw,th,false); }
+      else    { addTile(gx,gy,th,tw,true);  addTile(gx+th,gy,th,tw,true); }
+    }
+  } else if (pat === 'diagonal') {
+    // Rotate the tile grid 45° around the centroid
+    const ang = Math.PI/4;
+    const spanMax = Math.max(spanX, spanY) * 1.5;
+    const rows = Math.ceil(spanMax/th), cols = Math.ceil(spanMax/tw);
+    for (let r=-rows;r<rows;r++) for (let c=-cols;c<cols;c++) {
+      const lx=c*tw, ly=r*th;
+      const wx=cx0 + lx*Math.cos(ang) - ly*Math.sin(ang);
+      const wy=cy0 + lx*Math.sin(ang) + ly*Math.cos(ang);
+      // For diagonal we push raw tiles with a rotation flag
+      if (poly3d && !ptInPoly(wx+tw*0.5*Math.cos(ang), wy+tw*0.5*Math.sin(ang), poly3d)) continue;
+      if (!poly3d && (wx<0||wx>aw||wy<0||wy>ah)) continue;
+      tiles.push({ cx:wx, cy:wy, cw2:tw, ch2:th, rot:ang, isV:false });
     }
   } else {
-    for(let gy=0;gy<ah-0.001;gy+=th) {
-      const row=Math.round(gy/th);
+    for(let gy=scanMinY;gy<scanMaxY-0.001;gy+=th) {
+      const row=Math.round((gy-scanMinY)/th);
       const xOff=(pat==='bond'&&row%2===1)?tw/2:0;
-      for(let gx=-xOff;gx<aw+tw-0.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,th);
+      for(let gx=scanMinX-xOff;gx<scanMaxX+tw-0.001;gx+=tw) addTile(Math.max(gx,scanMinX),gy,tw,th,false);
     }
   }
 
-  // Build tile meshes
+  // Build tile meshes (slightly lifted so the darker joint shows clearly)
   const baseColor = new THREE.Color(pal[0]);
-  tiles.forEach(({ cx, cy, cw2, ch2 }) => {
-    const gap = 0.01;
+  const altColor  = new THREE.Color(pal[1]); // lighter variant – used for pattern-differentiating groups
+  tiles.forEach((t) => {
+    const { cx, cy, cw2, ch2, isV, rot } = t;
+    const gap = 0.012;
     const geo = new THREE.BoxGeometry(Math.max(0.02, cw2-gap), slabH, Math.max(0.02, ch2-gap));
-    // Pattern-based colour variation + per-tile random lightness
-    let c = baseColor.clone();
-    // hue-preserving variation
+    // Pattern-based group tinting so patterns are unmistakable from the 3D view
+    let base;
+    if (pat==='herringbone') base = isV ? altColor.clone() : baseColor.clone();
+    else if (pat==='basket') {
+      const cr=Math.floor((cy-scanMinY)/tw), cc=Math.floor((cx-scanMinX)/tw);
+      base = (cr+cc)%2 ? altColor.clone() : baseColor.clone();
+    }
+    else if (pat==='bond') {
+      // subtle row alternation for readability
+      const row=Math.floor((cy-scanMinY)/th);
+      base = (row%3===0) ? altColor.clone() : baseColor.clone();
+    }
+    else if (pat==='diagonal') {
+      const idx=Math.round((cx+cy)/tw);
+      base = (idx%2) ? altColor.clone() : baseColor.clone();
+    }
+    else base = baseColor.clone();
+    // Per-tile light/dark variation (stronger for visual texture)
     const rnd = (Math.sin(cx*127.1 + cy*311.7)*43758.5453)%1;
-    const vari = ((rnd<0?rnd+1:rnd) - 0.5) * 0.12;
-    c.offsetHSL(0, 0, vari);
-    const mat = new THREE.MeshStandardMaterial({ color: c, roughness: 0.72, metalness: 0.02 });
+    const vari = ((rnd<0?rnd+1:rnd) - 0.5) * 0.18;
+    base.offsetHSL(0, 0, vari);
+    // For speckled granite-like materials, mix in per-tile hue jitter
+    if (VIZ.color==='granite' || VIZ.color==='mixed' || VIZ.color==='sand_mix') {
+      base.offsetHSL(((rnd<0?rnd+1:rnd)-0.5)*0.015, 0, 0);
+    }
+    const mat = new THREE.MeshStandardMaterial({ color: base, roughness: 0.72, metalness: 0.02 });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(cx + cw2/2 - cx0, slabH/2, cy + ch2/2 - cy0);
+    mesh.position.set(cx + cw2/2 - cx0, slabH*0.55, cy + ch2/2 - cy0);
+    if (rot) mesh.rotation.y = -rot;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     T3.tileGroup.add(mesh);

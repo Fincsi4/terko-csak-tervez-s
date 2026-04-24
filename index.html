@@ -77,6 +77,9 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
 .opacity-ctrl input[type=range]{width:80px;accent-color:var(--primary)}
 .photo-toolbar{background:#fff;border-top:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
 .photo-tb-left{display:flex;gap:6px;flex-wrap:wrap}
+.plan-tbtn-group{display:flex;gap:2px;padding:2px;background:#fff;border:1px solid var(--border);border-radius:var(--r-sm)}
+.plan-tbtn{padding:5px 9px !important;min-width:30px;background:transparent !important;border:none !important;font-size:.85rem}
+.plan-tbtn:hover{background:var(--primary-bg) !important;color:var(--primary)}
 .pa-panel{background:#fff;border-top:1px solid var(--border);padding:14px 18px}
 .pa-panel-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .pa-calib-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px;background:var(--primary-bg);padding:9px 12px;border-radius:var(--r-sm)}
@@ -280,24 +283,45 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
           <p>Töltsön fel fotót a helyszínről</p>
           <button class="btn--sm btn--green" onclick="document.getElementById('photoFileInput').click()"><i class="fa-solid fa-upload"></i> Fotó feltöltése</button>
           <input type="file" id="photoFileInput" accept="image/*" style="display:none">
-          <p style="font-size:.75rem;color:var(--text-3);text-align:center;max-width:340px">Jelölje ki a burkolandó területet – automatikusan elemzi az anyagokat és kiszámolja a várható munkákat</p>
+          <p style="font-size:.75rem;color:var(--text-3);text-align:center;max-width:380px">A tervrajz (2D-ből) automatikusan megjelenik a fotón, illessze a helyszínre – mozgatható, forgatható, 3D-ben dönthető</p>
         </div>
         <div id="photoCanvasWrap" style="display:none">
           <div id="cameraAngleBadge" style="display:none;align-items:center;gap:8px;padding:7px 12px;background:var(--primary-bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:.83rem;color:var(--text-2);margin:8px 12px 0"></div>
           <div id="envScaleHints" style="display:none;flex-wrap:wrap;gap:7px;padding:6px 12px;background:var(--green-bg);border:1px solid #b6e8ca;border-radius:var(--r-sm);font-size:.8rem;color:#155724;margin:6px 12px 0"></div>
           <div style="position:relative;background:#111">
             <canvas id="photoCanvas" style="display:block;width:100%;cursor:crosshair"></canvas>
-            <div class="viz-tooltip" id="photoTip">Kattintson a terület körvonalának megjelöléshez</div>
+            <div class="viz-tooltip" id="photoTip">Mozgassa/dönts a tervrajzot a fenti gombokkal, vagy húzza a sarkakat</div>
           </div>
           <div class="photo-toolbar">
             <div class="photo-tb-left">
-              <button class="btn--sm btn--green" id="btnDrawPoly"><i class="fa-solid fa-draw-polygon"></i> Terület jelölése</button>
+              <button class="btn--sm btn--green" id="btnDrawPoly"><i class="fa-solid fa-draw-polygon"></i> Saját alak</button>
               <button class="btn--sm" id="btnAddPoly" style="display:none"><i class="fa-solid fa-plus"></i> Új terület</button>
               <button class="btn--sm" id="btnUndoPoint"><i class="fa-solid fa-rotate-left"></i> Vissza</button>
               <button class="btn--sm btn--danger" id="btnClearPoly"><i class="fa-solid fa-trash"></i> Törlés</button>
               <button class="btn--sm" onclick="document.getElementById('photoFileInput').click()"><i class="fa-solid fa-image"></i> Új fotó</button>
             </div>
             <div class="opacity-ctrl"><span>Átlátszóság:</span><input type="range" id="overlayOpacity" min="20" max="95" value="72"><span id="opacityVal">72%</span></div>
+          </div>
+          <div class="plan-transform-bar" id="planTransformBar" style="display:none;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#f7f3ed;border-top:1px solid var(--border);align-items:center">
+            <span style="font-weight:600;font-size:.82rem;color:var(--text-2);margin-right:4px"><i class="fa-solid fa-arrows-up-down-left-right"></i> Tervrajz illesztés:</span>
+            <div class="plan-tbtn-group">
+              <button class="btn--sm plan-tbtn" title="Forgat balra" onclick="planRotate(-5)"><i class="fa-solid fa-rotate-left"></i></button>
+              <button class="btn--sm plan-tbtn" title="Forgat jobbra" onclick="planRotate(5)"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <div class="plan-tbtn-group">
+              <button class="btn--sm plan-tbtn" title="Dönt hátra (felülnézet)" onclick="planTiltV(0.08)"><i class="fa-solid fa-arrow-up"></i></button>
+              <button class="btn--sm plan-tbtn" title="Dönt előre (szemmagasság)" onclick="planTiltV(-0.08)"><i class="fa-solid fa-arrow-down"></i></button>
+              <button class="btn--sm plan-tbtn" title="Dönt balra" onclick="planTiltH(-0.08)"><i class="fa-solid fa-arrow-left"></i></button>
+              <button class="btn--sm plan-tbtn" title="Dönt jobbra" onclick="planTiltH(0.08)"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div class="plan-tbtn-group">
+              <button class="btn--sm plan-tbtn" title="Kisebbít" onclick="planScale(0.9)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+              <button class="btn--sm plan-tbtn" title="Nagyít" onclick="planScale(1.1)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            </div>
+            <div class="plan-tbtn-group">
+              <button class="btn--sm plan-tbtn" title="Visszaállít (alaphelyzet)" onclick="resetPlanOverlay()"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+            <span style="font-size:.76rem;color:var(--text-3);margin-left:auto">Tipp: a sarkakat is húzhatod direktben</span>
           </div>
           <div id="photoAnalysisPanels" style="display:none">
             <div class="pa-panel">
@@ -771,6 +795,7 @@ function resetShape() {
   el('btnShapeDraw').style.background=''; el('btnShapeDraw').style.color='';
   el('btnShapeReset').style.display='none';
   renderActive(); updateQFCost();
+  if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
 }
 function closePolyDraft() {
   if (VIZ.polyDraft.length<3) return;
@@ -779,6 +804,7 @@ function closePolyDraft() {
   el('btnShapeDraw').style.background=''; el('btnShapeDraw').style.color='';
   el('btnShapeReset').style.display='';
   renderActive(); updateQFCost();
+  if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
 }
 
 function renderViz(cv) {
@@ -1096,6 +1122,7 @@ document.querySelectorAll('.viz-tab').forEach(btn => {
     el('vizPanel2d').style.display = VIZ.tab==='2d' ? '' : 'none';
     el('vizPanel3d').style.display = VIZ.tab==='3d' ? '' : 'none';
     el('vizPanelPhoto').style.display = VIZ.tab==='photo' ? '' : 'none';
+    if (VIZ.tab==='photo' && PS.img && !findPlanPoly()) createPlanOverlay();
     renderActive();
   });
 });
@@ -1114,6 +1141,7 @@ el('vizAreaSize').addEventListener('change', e => {
     const [w,h] = v.split('x').map(Number);
     el('vizCustW').value = w; el('vizCustH').value = h;
     VIZ.area = {w,h}; updateQFCost(); renderActive();
+    if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
   }
 });
 function readCustomArea() {
@@ -1124,6 +1152,7 @@ function readCustomArea() {
   });
   el('vizAreaSize').value = preset || 'custom';
   updateQFCost(); renderActive();
+  if (PS.img && typeof createPlanOverlay==='function') createPlanOverlay();
 }
 el('vizCustW').addEventListener('input', readCustomArea);
 el('vizCustH').addEventListener('input', readCustomArea);
@@ -1412,7 +1441,9 @@ function renderPhoto(){
     if(poly.closed)ctx.closePath();
     if(poly.closed&&pts.length>2){
       ctx.save();ctx.globalAlpha=PS.opacity;
-      const usePersp=pts.length===4&&PS.cameraAngle<85;
+      // For the plan overlay: always use perspective fill (user is actively tilting it).
+      // For user-drawn polygons: use perspective only if 4-point & not aerial.
+      const usePersp=pts.length===4&&(poly.isPlan||PS.cameraAngle<85);
       if(usePersp){fillPerspQuad(ctx,pts,getEffectivePxPerM(),VIZ.pavingType,VIZ.pattern,PAL[VIZ.color]||PAL.gray);}
       else{if(!PS.photoPatCache)PS.photoPatCache=buildPhotoPattern();ctx.fillStyle=PS.photoPatCache;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(q=>ctx.lineTo(q.x,q.y));ctx.closePath();ctx.fill();}
       ctx.restore();
@@ -1446,6 +1477,114 @@ function renderPhoto(){
 }
 function renderPhotoOverlay(){PS.photoPatCache=null;renderPhoto();}
 
+// ── PLAN OVERLAY (syncs VIZ.area / VIZ.polygon to photo as draggable 4-corner quad) ──
+function findPlanPolyIdx() { return PS.polygons.findIndex(p => p && p.isPlan); }
+function findPlanPoly() { const i=findPlanPolyIdx(); return i>=0?PS.polygons[i]:null; }
+
+function createPlanOverlay() {
+  if (!PS.img) return;
+  const cv = getPhotoCanvas();
+  const W = cv.width, H = cv.height;
+  // Derive plan aspect (in metres) from VIZ
+  let aw, ah;
+  if (VIZ.polygon && VIZ.polygon.length >= 3) {
+    const xs=VIZ.polygon.map(p=>p.x), ys=VIZ.polygon.map(p=>p.y);
+    aw = Math.max(...xs) - Math.min(...xs);
+    ah = Math.max(...ys) - Math.min(...ys);
+    if (aw<0.1) aw=VIZ.area.w; if (ah<0.1) ah=VIZ.area.h;
+  } else {
+    aw = VIZ.area.w; ah = VIZ.area.h;
+  }
+  // Fit quad into ~55% of photo (wider by default – looks more natural on ground)
+  const maxSize = Math.min(W*0.75, H*0.55);
+  const scale = Math.min(maxSize / aw, maxSize / ah);
+  const pw = aw * scale, ph = ah * scale;
+  const cx = W/2, cy = H*0.62;
+  // Slight default perspective (top narrower than bottom) for ground-plane hint
+  const persp = 0.18;
+  const tl = {x: cx - pw/2 + pw*persp*0.5, y: cy - ph/2};
+  const tr = {x: cx + pw/2 - pw*persp*0.5, y: cy - ph/2};
+  const br = {x: cx + pw/2, y: cy + ph/2};
+  const bl = {x: cx - pw/2, y: cy + ph/2};
+  const plan = {
+    points:[tl,tr,br,bl], closed:true, isPlan:true,
+    name:'Térkő terv', color:POLY_COLORS[0], sides:[], areaM2: aw*ah
+  };
+  const idx = findPlanPolyIdx();
+  if (idx>=0) PS.polygons[idx] = plan; else PS.polygons.unshift(plan);
+  PS.activeIdx = findPlanPolyIdx();
+  PS.photoPatCache = null;
+  // Lock the photo scale to the plan's bottom edge (= VIZ.area.w metres) so tile sizes stay correct
+  PS.pxPerM = Math.hypot(br.x-bl.x, br.y-bl.y) / aw;
+  if (typeof updateMeasurements === 'function') { try { updateMeasurements(); } catch(_){} }
+  el('planTransformBar') && (el('planTransformBar').style.display='flex');
+  renderPhoto();
+}
+
+function resetPlanOverlay() { createPlanOverlay(); }
+
+function syncPlanToPhoto() {
+  if (!PS.img) return;
+  if (VIZ.tab !== 'photo') return;
+  // If no plan overlay yet OR plan exists but aspect ratio doesn't match new VIZ – rebuild
+  const plan = findPlanPoly();
+  if (!plan) { createPlanOverlay(); return; }
+  // Keep existing transformation; just update the colour/pattern cache
+  PS.photoPatCache = null;
+  renderPhoto();
+}
+
+function _planCentroid(pts){return{cx:pts.reduce((s,p)=>s+p.x,0)/pts.length, cy:pts.reduce((s,p)=>s+p.y,0)/pts.length};}
+
+function planRotate(deg) {
+  const plan = findPlanPoly(); if (!plan) return;
+  const r = deg*Math.PI/180, c=Math.cos(r), s=Math.sin(r);
+  const {cx,cy}=_planCentroid(plan.points);
+  plan.points = plan.points.map(p=>({x:cx+(p.x-cx)*c-(p.y-cy)*s, y:cy+(p.x-cx)*s+(p.y-cy)*c}));
+  PS.photoPatCache=null; renderPhoto();
+}
+function planScale(factor) {
+  const plan = findPlanPoly(); if (!plan) return;
+  const {cx,cy}=_planCentroid(plan.points);
+  plan.points = plan.points.map(p=>({x:cx+(p.x-cx)*factor, y:cy+(p.y-cy)*factor}));
+  PS.photoPatCache=null; renderPhoto();
+}
+function planMove(dx, dy) {
+  const plan = findPlanPoly(); if (!plan) return;
+  plan.points = plan.points.map(p=>({x:p.x+dx, y:p.y+dy}));
+  PS.photoPatCache=null; renderPhoto();
+}
+// planTiltV: +amount = tilt away (top narrower, looking down) | -amount = tilt toward viewer (top wider)
+function planTiltV(amount) {
+  const plan = findPlanPoly(); if (!plan) return;
+  const pts = plan.points;
+  const {cx}=_planCentroid(pts);
+  if (amount>0) { // shrink top
+    pts[0] = {x: pts[0].x + (cx - pts[0].x)*amount, y: pts[0].y};
+    pts[1] = {x: pts[1].x + (cx - pts[1].x)*amount, y: pts[1].y};
+  } else { // shrink bottom
+    const a=-amount;
+    pts[3] = {x: pts[3].x + (cx - pts[3].x)*a, y: pts[3].y};
+    pts[2] = {x: pts[2].x + (cx - pts[2].x)*a, y: pts[2].y};
+  }
+  PS.photoPatCache=null; renderPhoto();
+}
+// planTiltH: +amount = shrink right side | -amount = shrink left side
+function planTiltH(amount) {
+  const plan = findPlanPoly(); if (!plan) return;
+  const pts = plan.points;
+  const {cy}=_planCentroid(pts);
+  if (amount>0) { // shrink right
+    pts[1] = {x: pts[1].x, y: pts[1].y + (cy - pts[1].y)*amount};
+    pts[2] = {x: pts[2].x, y: pts[2].y + (cy - pts[2].y)*amount};
+  } else {
+    const a=-amount;
+    pts[0] = {x: pts[0].x, y: pts[0].y + (cy - pts[0].y)*a};
+    pts[3] = {x: pts[3].x, y: pts[3].y + (cy - pts[3].y)*a};
+  }
+  PS.photoPatCache=null; renderPhoto();
+}
+
 // ── PHOTO UPLOAD + EVENTS ─────────────────────────────────────────────────────
 el('photoFileInput').addEventListener('change', e => {
   const file=e.target.files[0];if(!file)return;
@@ -1462,12 +1601,15 @@ el('photoFileInput').addEventListener('change', e => {
       const maxW=Math.min(900,cv.parentElement.clientWidth||900);
       cv.width=Math.round(img.naturalWidth*Math.min(1,maxW/img.naturalWidth));
       cv.height=Math.round(img.naturalHeight*(cv.width/img.naturalWidth));
-      renderPhoto();
+      createPlanOverlay();
     };img.src=ev.target.result;
   };reader.readAsDataURL(file);
 });
 
 function startNewPoly(){
+  // Remove existing plan overlay – user is switching to custom-draw mode
+  const pIdx=findPlanPolyIdx(); if(pIdx>=0) PS.polygons.splice(pIdx,1);
+  el('planTransformBar') && (el('planTransformBar').style.display='none');
   const idx=PS.polygons.length;
   PS.polygons.push({points:[],closed:false,name:`Terület ${idx+1}`,color:POLY_COLORS[idx%POLY_COLORS.length],sides:[],areaM2:0});
   PS.activeIdx=idx;PS.drawing=true;PS.photoPatCache=null;
@@ -1485,9 +1627,11 @@ el('btnUndoPoint').addEventListener('click',()=>{
 el('btnClearPoly').addEventListener('click',()=>{
   PS.polygons=[];PS.drawing=false;PS.photoPatCache=null;PS.workItems={};
   el('photoAnalysisPanels').style.display='none';el('btnAddPoly').style.display='none';
-  resetDrawBtn();renderPhoto();
+  resetDrawBtn();
+  // Restore the plan overlay from current VIZ state
+  if(PS.img) createPlanOverlay(); else renderPhoto();
 });
-function resetDrawBtn(){el('btnDrawPoly').innerHTML='<i class="fa-solid fa-draw-polygon"></i> Terület jelölése';el('btnDrawPoly').style.cssText='';}
+function resetDrawBtn(){el('btnDrawPoly').innerHTML='<i class="fa-solid fa-draw-polygon"></i> Saját alak';el('btnDrawPoly').style.cssText='';}
 el('btnCalibrate').addEventListener('click',applyCalibration);
 el('overlayOpacity').addEventListener('input',function(){PS.opacity=this.value/100;el('opacityVal').textContent=this.value+'%';PS.photoPatCache=null;renderPhoto();});
 el('paAreaOverride').addEventListener('input',recalcCost);

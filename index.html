@@ -9,6 +9,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 <style>
 :root{
   --primary:#337AB7;--primary-dark:#23527C;--primary-light:#5B9BD5;--primary-bg:#E8F1FA;
@@ -273,8 +281,8 @@ input,select,textarea{font-family:var(--font);font-size:.9rem}
       </div>
       <!-- 3D panel -->
       <div class="viz-panel viz-canvas-area viz-canvas-area--3d" id="vizPanel3d" style="display:none">
-        <canvas id="canvas3d" width="900" height="460"></canvas>
-        <div class="viz-tooltip" id="viz3dTip">Húzással forgatható · Görgetővel zoomolható</div>
+        <canvas id="canvas3d" style="display:block;width:100%;height:460px;outline:none"></canvas>
+        <div class="viz-tooltip" id="viz3dTip">Bal egér: forgat · Görgő: zoom · Jobb egér: mozgat</div>
       </div>
       <!-- Photo panel -->
       <div class="viz-panel" id="vizPanelPhoto" style="display:none">
@@ -888,10 +896,15 @@ function renderViz(cv) {
 
 function render2D() { renderViz(c2d()); }
 
-// ── 3D CAMERA STATE ───────────────────────────────────────────────────────────
-const R3D = { yaw: 0, zoom: 1 };
+// ── 3D CAMERA STATE (delegated to Three.js module – see bottom of file) ───────
+const R3D = { zoom: 1 }; // kept for zoom-button compatibility
 
 function render3D() {
+  // Real WebGL 3D: handled by the Three.js module script at end of <body>
+  if (window.__threeRender3D) { window.__threeRender3D(); return; }
+}
+// Legacy isometric renderer (unused – retained until the module loads) ─────────
+function _legacy_render3D_unused() {
   const cv = c3d(); if (!cv) return;
   const ctx = cv.getContext('2d');
   const W = cv.width, H = cv.height;
@@ -1077,42 +1090,7 @@ function renderActive(){
   else if(VIZ.tab==='photo')renderPhotoOverlay();
 }
 
-// ── 3D INTERACTIVE CONTROLS ───────────────────────────────────────────────────
-(function(){
-  const cv = el('canvas3d');
-  let dragging=false, lastX=0, pinchDist=0;
-  cv.addEventListener('mousedown', e => { dragging=true; lastX=e.clientX; cv.classList.add('grabbing'); });
-  window.addEventListener('mouseup', () => { dragging=false; cv.classList.remove('grabbing'); });
-  window.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    R3D.yaw += (e.clientX - lastX) * 0.012;
-    lastX = e.clientX;
-    if (VIZ.tab==='3d') render3D();
-  });
-  cv.addEventListener('wheel', e => {
-    e.preventDefault();
-    R3D.zoom = Math.max(0.1, Math.min(20, R3D.zoom * (e.deltaY < 0 ? 1.13 : 1/1.13)));
-    updateZoomBtn(); if (VIZ.tab==='3d') render3D();
-  }, { passive: false });
-  cv.addEventListener('touchstart', e => {
-    if (e.touches.length===1) { dragging=true; lastX=e.touches[0].clientX; }
-    else if (e.touches.length===2) { dragging=false; pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
-  }, { passive: true });
-  cv.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (e.touches.length===1 && dragging) {
-      R3D.yaw += (e.touches[0].clientX - lastX) * 0.014;
-      lastX = e.touches[0].clientX;
-      if (VIZ.tab==='3d') render3D();
-    } else if (e.touches.length===2) {
-      const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      R3D.zoom = Math.max(0.1, Math.min(20, R3D.zoom * d / pinchDist)); updateZoomBtn();
-      pinchDist = d;
-      if (VIZ.tab==='3d') render3D();
-    }
-  }, { passive: false });
-  cv.addEventListener('touchend', () => { dragging=false; });
-})();
+// 3D INTERACTIVE CONTROLS: handled by OrbitControls in the Three.js module.
 
 // ── VIZ CONTROLS ─────────────────────────────────────────────────────────────
 document.querySelectorAll('.viz-tab').forEach(btn => {
@@ -1770,23 +1748,24 @@ function syncVizToForm(){
 
 // ── ZOOM CONTROLS ─────────────────────────────────────────────────────────────
 function vizZoomIn() {
-  if (VIZ.tab==='3d') R3D.zoom = Math.min(20, R3D.zoom * 1.3);
-  else VIZ.zoom = Math.min(20, VIZ.zoom * 1.3);
+  if (VIZ.tab==='3d') { if (window.__threeZoom) window.__threeZoom(0.8); updateZoomBtn(); return; }
+  VIZ.zoom = Math.min(20, VIZ.zoom * 1.3);
   updateZoomBtn(); renderActive();
 }
 function vizZoomOut() {
-  if (VIZ.tab==='3d') R3D.zoom = Math.max(0.1, R3D.zoom / 1.3);
-  else VIZ.zoom = Math.max(0.1, VIZ.zoom / 1.3);
+  if (VIZ.tab==='3d') { if (window.__threeZoom) window.__threeZoom(1.25); updateZoomBtn(); return; }
+  VIZ.zoom = Math.max(0.1, VIZ.zoom / 1.3);
   updateZoomBtn(); renderActive();
 }
 function vizZoomReset() {
-  VIZ.zoom = 1; R3D.zoom = 1;
+  VIZ.zoom = 1;
+  if (VIZ.tab==='3d' && window.__threeResetView) window.__threeResetView();
   updateZoomBtn(); renderActive();
 }
 function updateZoomBtn() {
   const btn = el('btnZoomLevel'); if (!btn) return;
-  const z = VIZ.tab==='3d' ? R3D.zoom : VIZ.zoom;
-  btn.textContent = Math.round(z * 100) + '%';
+  if (VIZ.tab==='3d') { btn.textContent = '3D'; return; }
+  btn.textContent = Math.round(VIZ.zoom * 100) + '%';
 }
 el('canvas2d').addEventListener('wheel', e => {
   e.preventDefault();
@@ -1804,5 +1783,236 @@ el('vestWorkType').addEventListener('change', e => {
 updateQFCost();
 setTimeout(render2D, 80);
 </script>
+
+<!-- ═════════════════════════════════════════════════════════════════════════════
+     THREE.JS 3D RENDERER (real WebGL — replaces the legacy isometric 2D canvas)
+     ═════════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const T3 = { scene:null, camera:null, renderer:null, controls:null, tileGroup:null, baseGroup:null, sun:null, initialCam:null };
+
+function onResize3D() {
+  if (!T3.renderer) return;
+  const cv = document.getElementById('canvas3d');
+  const w = cv.clientWidth || 900;
+  const h = cv.clientHeight || 460;
+  if (w<1||h<1) return;
+  T3.renderer.setSize(w, h, false);
+  T3.camera.aspect = w/h;
+  T3.camera.updateProjectionMatrix();
+}
+
+function init3D() {
+  const cv = document.getElementById('canvas3d');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xcfe4f4);
+  scene.fog = new THREE.Fog(0xcfe4f4, 40, 160);
+
+  const camera = new THREE.PerspectiveCamera(50, 2, 0.1, 300);
+  camera.position.set(8, 6, 10);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const sun = new THREE.DirectionalLight(0xfff2e5, 1.15);
+  sun.position.set(12, 18, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -25; sun.shadow.camera.right = 25;
+  sun.shadow.camera.top = 25;  sun.shadow.camera.bottom = -25;
+  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 70;
+  sun.shadow.bias = -0.0005;
+  scene.add(sun);
+  // Soft hemispheric fill (sky + ground)
+  scene.add(new THREE.HemisphereLight(0xe8efff, 0x8a7a5e, 0.35));
+
+  // Ground (grass)
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x8fba6f, roughness: 0.95 });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = -0.002;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Subtle grid
+  const grid = new THREE.GridHelper(40, 40, 0x6a8f55, 0x7ca468);
+  grid.position.y = -0.001;
+  grid.material.transparent = true; grid.material.opacity = 0.35;
+  scene.add(grid);
+
+  const baseGroup = new THREE.Group(); scene.add(baseGroup);
+  const tileGroup = new THREE.Group(); scene.add(tileGroup);
+
+  const controls = new OrbitControls(camera, cv);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 1.5;
+  controls.maxDistance = 70;
+  controls.maxPolarAngle = Math.PI * 0.49; // don't go under ground
+  controls.target.set(0, 0.1, 0);
+
+  T3.scene=scene; T3.camera=camera; T3.renderer=renderer;
+  T3.controls=controls; T3.tileGroup=tileGroup; T3.baseGroup=baseGroup; T3.sun=sun;
+  T3.initialCam = { pos: camera.position.clone(), target: controls.target.clone() };
+
+  window.addEventListener('resize', onResize3D);
+  // ResizeObserver for when the 3D panel becomes visible
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => onResize3D());
+    ro.observe(cv);
+  }
+  onResize3D();
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (T3.controls) T3.controls.update();
+  if (T3.renderer && T3.scene && T3.camera) T3.renderer.render(T3.scene, T3.camera);
+}
+
+function disposeGroup(group) {
+  while (group.children.length) {
+    const c = group.children[0];
+    if (c.geometry && c.geometry.dispose) c.geometry.dispose();
+    if (c.material) {
+      if (Array.isArray(c.material)) c.material.forEach(m=>m.dispose());
+      else c.material.dispose();
+    }
+    group.remove(c);
+  }
+}
+
+function buildTiles() {
+  if (!T3.tileGroup) return;
+  disposeGroup(T3.tileGroup);
+  disposeGroup(T3.baseGroup);
+
+  const VIZ = window.VIZ, PAL = window.PAL, ptInPoly = window.ptInPoly;
+  if (!VIZ || !PAL) return;
+  const aw = VIZ.area.w, ah = VIZ.area.h;
+  const pal = PAL[VIZ.color] || PAL.gray;
+  const pat = VIZ.pattern;
+
+  // Tile dims in metres
+  let bw, bh;
+  if (VIZ.pavingType === 'large_slab') { bw=0.60; bh=0.40; }
+  else if (VIZ.pavingType === 'cobble') { bw=0.10; bh=0.10; }
+  else { bw=0.20; bh=0.10; }
+  let tw=bw, th=bh;
+  while ((aw/tw)*(ah/th) > 800) { tw*=1.5; th*=1.5; }
+
+  const slabH = 0.05;
+  const poly3d = VIZ.polygon && VIZ.polygon.length>=3 ? VIZ.polygon : null;
+
+  // Centering offset so the slab is around origin
+  const cx0 = aw/2, cy0 = ah/2;
+
+  // Sand/joint bed under the tiles
+  const jointCol = new THREE.Color(pal[3]).multiplyScalar(0.78);
+  const jointMat = new THREE.MeshStandardMaterial({ color: jointCol, roughness: 0.92 });
+  let baseShape;
+  if (poly3d) {
+    baseShape = new THREE.Shape(poly3d.map(p => new THREE.Vector2(p.x - cx0, p.y - cy0)));
+  } else {
+    baseShape = new THREE.Shape([
+      new THREE.Vector2(-aw/2, -ah/2),
+      new THREE.Vector2( aw/2, -ah/2),
+      new THREE.Vector2( aw/2,  ah/2),
+      new THREE.Vector2(-aw/2,  ah/2)
+    ]);
+  }
+  const baseGeo = new THREE.ExtrudeGeometry(baseShape, { depth: slabH*0.45, bevelEnabled:false });
+  const baseMesh = new THREE.Mesh(baseGeo, jointMat);
+  baseMesh.rotation.x = -Math.PI/2;
+  baseMesh.position.y = 0;
+  baseMesh.receiveShadow = true;
+  T3.baseGroup.add(baseMesh);
+
+  // Collect tile rectangles (same pattern logic as before)
+  const tiles = [];
+  function addTile(cx, cy, cw, ch) {
+    const cw2 = Math.min(cx+cw, aw) - cx;
+    const ch2 = Math.min(cy+ch, ah) - cy;
+    if (cw2 < 0.015 || ch2 < 0.015) return;
+    if (poly3d && !ptInPoly(cx + cw2/2, cy + ch2/2, poly3d)) return;
+    tiles.push({ cx, cy, cw2, ch2 });
+  }
+  if (pat === 'herringbone') {
+    let gy=0, flip=0;
+    while(gy<ah-0.001) {
+      const hH=Math.min(th,ah-gy), hx0=flip?th:0;
+      for(let gx=-hx0;gx<aw+tw-0.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,hH);
+      gy+=hH; if(gy>=ah-0.001) break;
+      const vH=Math.min(tw,ah-gy), vx0=flip?0:th;
+      for(let gx=-vx0;gx<aw+th-0.001;gx+=th) addTile(Math.max(gx,0),gy,th,vH);
+      gy+=vH; flip^=1;
+    }
+  } else if (pat === 'basket') {
+    const cs=tw;
+    for(let gy=0;gy<ah-0.001;gy+=cs) for(let gx=0;gx<aw-0.001;gx+=cs) {
+      const isH=((Math.round(gx/cs)+Math.round(gy/cs))%2+2)%2===0;
+      if(isH) { addTile(gx,gy,tw,th); addTile(gx,gy+th,tw,th); }
+      else    { addTile(gx,gy,th,tw); addTile(gx+th,gy,th,tw); }
+    }
+  } else {
+    for(let gy=0;gy<ah-0.001;gy+=th) {
+      const row=Math.round(gy/th);
+      const xOff=(pat==='bond'&&row%2===1)?tw/2:0;
+      for(let gx=-xOff;gx<aw+tw-0.001;gx+=tw) addTile(Math.max(gx,0),gy,tw,th);
+    }
+  }
+
+  // Build tile meshes
+  const baseColor = new THREE.Color(pal[0]);
+  tiles.forEach(({ cx, cy, cw2, ch2 }) => {
+    const gap = 0.01;
+    const geo = new THREE.BoxGeometry(Math.max(0.02, cw2-gap), slabH, Math.max(0.02, ch2-gap));
+    // Pattern-based colour variation + per-tile random lightness
+    let c = baseColor.clone();
+    // hue-preserving variation
+    const rnd = (Math.sin(cx*127.1 + cy*311.7)*43758.5453)%1;
+    const vari = ((rnd<0?rnd+1:rnd) - 0.5) * 0.12;
+    c.offsetHSL(0, 0, vari);
+    const mat = new THREE.MeshStandardMaterial({ color: c, roughness: 0.72, metalness: 0.02 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(cx + cw2/2 - cx0, slabH/2, cy + ch2/2 - cy0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    T3.tileGroup.add(mesh);
+  });
+
+  // Frame the camera target on the slab centre
+  if (T3.controls) T3.controls.target.set(0, 0.05, 0);
+}
+
+window.__threeRender3D = function() {
+  if (!T3.scene) init3D();
+  buildTiles();
+  setTimeout(onResize3D, 30);
+};
+window.__threeZoom = function(factor) {
+  if (!T3.camera || !T3.controls) return;
+  const dir = T3.camera.position.clone().sub(T3.controls.target);
+  const dist = dir.length();
+  const newDist = Math.max(1.5, Math.min(70, dist * factor));
+  dir.setLength(newDist);
+  T3.camera.position.copy(T3.controls.target).add(dir);
+};
+window.__threeResetView = function() {
+  if (!T3.camera || !T3.controls || !T3.initialCam) return;
+  T3.camera.position.copy(T3.initialCam.pos);
+  T3.controls.target.copy(T3.initialCam.target);
+  T3.controls.update();
+};
+</script>
+
 </body>
 </html>
